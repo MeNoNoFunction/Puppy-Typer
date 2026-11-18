@@ -59,7 +59,7 @@
         const s = freshSave();
         if (!raw || typeof raw !== 'object') return s;
         const nums = ['level', 'xp', 'bones', 'bestWpm', 'bestAcc', 'games', 'perfects', 'maxStreak', 'totalChars', 'hardRounds',
-            'totalTime', 'bestCombo', 'questsDone', 'customRounds', 'nightRounds', 'morningRounds', 'taRounds', 'taBest', 'quickRound', 'mysteryOpened', 'dailyClaims'];
+            'totalTime', 'bestCombo', 'questsDone', 'customRounds', 'nightRounds', 'morningRounds', 'taRounds', 'taBest', 'quickRound', 'mysteryOpened', 'dailyClaims', 'savedAt'];
         nums.forEach(k => { if (Number.isFinite(raw[k]) && raw[k] >= 0) s[k] = Math.floor(raw[k]); });
         if (s.level < 1) s.level = 1;
         if (['auto', 'light', 'dark'].includes(raw.theme)) s.theme = raw.theme;
@@ -123,7 +123,13 @@
     }
 
     let save = loadSave();
-    function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* ignore */ } }
+    // quiet = true: write without counting it as a change (used at startup and when loading from the cloud)
+    const acct = { state: 'off', user: null, username: '', synced: false, timer: null, failed: false };
+    function persist(quiet) {
+        if (!quiet) save.savedAt = Date.now();
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* ignore */ }
+        if (!quiet && acct.synced) scheduleCloudPush();
+    }
 
     const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
     function applyPrefs() {
@@ -203,7 +209,7 @@
         d.quests = makeQuests(today);
         newDayToast = true;
         checkAchievements(true);
-        persist();
+        persist(true);   // a new day alone should not count as a newer save (see account sync)
     }
     const questDone = q => q.p >= QUEST_POOL[q.i].target;
 
@@ -1352,6 +1358,9 @@
         if (!t) return;
         const d = t.dataset;
         switch (d.act) {
+            case 'signIn': doSignIn(); break;
+            case 'signOut': doSignOut(); break;
+            case 'pickName': askUsername(); break;
             case 'tab': if (d.tab !== currentTab) sfx.tab(); showTab(d.tab); break;
             case 'quit': leaveGame('play'); break;
             case 'cat': wardCat = d.cat; tryOn = null; renderWardrobe(); break;
@@ -1456,7 +1465,7 @@
         } catch (err) { toast('That save code is not valid.', 'warn'); sfx.error(); }
     });
     el.resetBtn.addEventListener('click', () => {
-        if (confirm('Reset your level, XP, items and records? This cannot be undone.')) {
+        if (confirm('Reset your level, XP, items and records? This cannot be undone.' + (acct.user ? ' Your account save will be reset too.' : ''))) {
             save = freshSave();
             persist();
             applyPrefs(); syncAudio();
@@ -1466,6 +1475,154 @@
     });
 
     /* =====================================================
+       ACCOUNT: Google sign-in, cloud save, username
+    ===================================================== */
+    const CLOUD = window.PT_CLOUD;
+    const UID_KEY = 'puppyTyperCloudUid';
+    const progressScore = s => s.totalChars + s.games * 50;
+
+    function scheduleCloudPush(now) {
+        clearTimeout(acct.timer);
+        acct.state = 'saving'; renderAccount();
+        acct.timer = setTimeout(pushCloud, now ? 0 : 3000);
+    }
+    async function pushCloud() {
+        clearTimeout(acct.timer); acct.timer = null;
+        if (!acct.synced || !CLOUD.user()) return;
+        try {
+            await CLOUD.pushSave(JSON.stringify(save), save.savedAt || Date.now(), { username: acct.username, level: save.level, bestWpm: save.bestWpm });
+            acct.failed = false; acct.state = 'ok';
+        } catch (e) { console.warn('Cloud save failed', e); acct.failed = true; acct.state = 'error'; }
+        renderAccount();
+    }
+    window.addEventListener('online', () => { if (acct.failed) scheduleCloudPush(true); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && acct.timer) pushCloud(); });
+
+    function askUsername() {
+        if (document.getElementById('nameDlg')) return;
+        const dlg = document.createElement('div');
+        dlg.className = 'dlg'; dlg.id = 'nameDlg';
+        dlg.innerHTML = `<form class="dlg-card" autocomplete="off">
+      <h2>Pick your username</h2>
+      <p class="muted">This is the name other players will see on the leaderboard. You can use letters, numbers and underscores (3 to 16 characters).</p>
+      <input id="nameIn" maxlength="16" placeholder="e.g. FastPaws" spellcheck="false" autocapitalize="off">
+      <p id="nameErr" class="dlg-err"></p>
+      <div class="row"><button class="big-btn" type="submit">Save username</button><button class="small-btn ghost" type="button" id="nameLater">Later</button></div>
+    </form>`;
+        document.body.appendChild(dlg);
+        const inp = dlg.querySelector('#nameIn'), err = dlg.querySelector('#nameErr');
+        setTimeout(() => inp.focus(), 50);
+        dlg.querySelector('#nameLater').onclick = () => dlg.remove();
+        dlg.querySelector('form').onsubmit = async ev => {
+            ev.preventDefault();
+            const name = inp.value.trim();
+            const bad = CLOUD.usernameProblem(name);
+            if (bad) { err.textContent = bad; return; }
+            err.textContent = 'Checking...';
+            try {
+                await CLOUD.claimUsername(name);
+                acct.username = name; dlg.remove();
+                toast(`Welcome, ${name}!`, 'good'); sfx.claim();
+                scheduleCloudPush(true); renderAccount();
+            } catch (e) {
+                err.textContent = e.code === 'taken' || e.code === 'invalid' ? e.message : 'Could not save that name. Check your connection and try again.';
+            }
+        };
+    }
+
+    function applyCloudSave(obj) {
+        save = normalize(obj);
+        persist(true);
+        applyPrefs(); syncAudio(); ensureDaily(); renderAll();
+    }
+
+    async function onSignedIn(user) {
+        acct.user = user; acct.state = 'syncing'; acct.synced = false; renderAccount();
+        if (g && g.active) { setTimeout(() => onSignedIn(user), 3000); return; }
+        try {
+            const prof = await CLOUD.getProfile();
+            acct.username = (prof && prof.username) || '';
+            let cloud = null;
+            try { cloud = prof && prof.save ? normalize(JSON.parse(prof.save)) : null; } catch (e) { cloud = null; }
+            const first = localStorage.getItem(UID_KEY) !== user.uid;
+            const ls = progressScore(save), cs = cloud ? progressScore(cloud) : 0;
+            let useCloud = !!cloud && (cloud.savedAt || 0) >= (save.savedAt || 0);
+            if (cloud && first && ls > 0 && cs > 0 && ls !== cs) {
+                useCloud = confirm(`This account already has progress saved (level ${cloud.level}). This device has different progress (level ${save.level}).\n\nOK = use the account's progress\nCancel = replace it with this device's progress`);
+            }
+            try { localStorage.setItem(UID_KEY, user.uid); } catch (e) { /* ignore */ }
+            acct.synced = true;
+            if (useCloud) { applyCloudSave(cloud); acct.state = 'ok'; if (first) toast('Your progress was loaded from your account!', 'good'); }
+            else { acct.state = 'saving'; await pushCloud(); if (first && ls > 0) toast('Your progress is now saved to your account!', 'good'); }
+            renderAccount();
+            if (!acct.username) askUsername(); else if (first) toast(`Signed in as ${acct.username}`, 'on');
+        } catch (e) {
+            console.warn('Sync failed', e);
+            acct.state = 'error'; acct.failed = true; acct.synced = false; renderAccount();
+            toast('Could not reach your account. Progress is still saved on this device.', 'warn');
+        }
+    }
+
+    function renderAccount() {
+        const box = document.getElementById('accountBody');
+        if (!box) return;
+        if (!CLOUD || !CLOUD.configured) {
+            box.innerHTML = '<p class="muted">Cloud saves are not set up yet. Your progress is saved on <strong>this device and browser only</strong>. Use the save code below to move it to another device.</p>';
+            return;
+        }
+        if (acct.state === 'loading') { box.innerHTML = '<p class="muted">Checking your account...</p>'; return; }
+        if (!acct.user) {
+            box.dataset.sig = '';
+            box.innerHTML = `<p class="muted">Sign in with Google to save your progress to your account and pick it back up on any device.</p>
+        <button class="small-btn" data-act="signIn">Sign in with Google</button>`;
+            return;
+        }
+        const sig = (acct.username || '') + '|' + (acct.user.email || '');
+        const stEl = box.querySelector('.acct-status');
+        const status0 = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' }[acct.state] || 'Saved to your account';
+        if (stEl && box.dataset.sig === sig) { stEl.textContent = status0; stEl.className = 'acct-status ' + acct.state; return; }   // don't rebuild buttons mid-click
+        box.dataset.sig = sig;
+        const status = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' }[acct.state] || 'Saved to your account';
+        box.innerHTML = `<div class="acct-row">
+        <div class="acct-name">${acct.username ? `<b>${acct.username}</b>` : '<b class="muted">No username yet</b>'}<small>${acct.user.email || 'Google account'}</small></div>
+        <span class="acct-status ${acct.state}">${status}</span>
+      </div>
+      <div class="row">
+        ${acct.username ? '' : '<button class="small-btn" data-act="pickName">Choose username</button>'}
+        <button class="small-btn ghost" data-act="signOut">Sign out</button>
+      </div>`;
+    }
+
+    async function doSignIn() {
+        try { await CLOUD.signIn(); }
+        catch (e) {
+            if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+            toast(e.code === 'auth/unauthorized-domain' ? 'This website address is not allowed yet. Add it in Firebase (see SETUP.md).' : 'Sign-in did not work. Please try again.', 'warn');
+            sfx.error();
+        }
+    }
+    async function doSignOut() {
+        if (!confirm('Sign out? Your progress stays safe in your account. This device will start fresh until you sign in again.')) return;
+        if (acct.timer) await pushCloud();
+        if (acct.failed) { if (!confirm('Your latest progress has not been saved to your account yet. Sign out anyway?')) return; }
+        const keep = { theme: save.theme, muted: save.muted, musicOff: save.musicOff, keySounds: save.keySounds, fx: save.fx, textSize: save.textSize };
+        await CLOUD.signOut();
+        try { localStorage.removeItem(UID_KEY); } catch (e) { /* ignore */ }
+        acct.user = null; acct.username = ''; acct.synced = false; acct.state = 'out';
+        save = freshSave(); Object.assign(save, keep);
+        persist(true); ensureDaily(); applyPrefs(); renderAll();
+        toast('Signed out', 'off');
+    }
+
+    if (CLOUD) {
+        acct.state = CLOUD.configured ? 'loading' : 'off';
+        CLOUD.onAuth((user, err) => {
+            if (err) { acct.state = 'off'; renderAccount(); return; }
+            if (user) onSignedIn(user); else { acct.user = null; acct.synced = false; acct.state = 'out'; renderAccount(); }
+        });
+    }
+
+    /* =====================================================
        START
     ===================================================== */
     if (window.PT_ICONS) PT_ICONS.start();
@@ -1473,6 +1630,7 @@
     syncAudio();
     ensureDaily();
     checkAchievements(false);
-    persist();
+    persist(true);
+    renderAccount();
     showTab('play');
 })();

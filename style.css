@@ -3132,3 +3132,119 @@ kbd {
         height: 12rem;
     }
 }
+
+/* ---------- Account + dialogs ---------- */
+.acct-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.4rem 0 0.8rem;
+}
+
+.acct-name b {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    display: block;
+}
+
+.acct-name small {
+    color: var(--muted);
+}
+
+.acct-status {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--mint) 22%, transparent);
+    color: var(--ink);
+}
+
+    .acct-status.saving, .acct-status.syncing {
+        background: color-mix(in srgb, var(--blue) 22%, transparent);
+    }
+
+    .acct-status.error {
+        background: color-mix(in srgb, var(--coral) 25%, transparent);
+    }
+
+.small-btn.ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--line);
+    box-shadow: none;
+}
+
+.dlg {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(8,12,28,0.6);
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.2s ease;
+}
+
+.dlg-card {
+    width: min(92vw, 26rem);
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 1.4rem;
+    padding: 1.4rem;
+    box-shadow: var(--shadow);
+    animation: toastIn 0.4s var(--spring);
+    display: grid;
+    gap: 0.8rem;
+}
+
+    .dlg-card h2 {
+        margin: 0;
+    }
+
+    .dlg-card p {
+        margin: 0;
+    }
+
+    .dlg-card input {
+        font-size: 1.1rem;
+    }
+
+.dlg-err {
+    color: var(--coral);
+    font-weight: 700;
+    min-height: 1.3em;
+    font-size: 0.9rem;
+}
+
+.dlg-card .row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+.dlg-card input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.9rem;
+    border: 2px solid var(--line);
+    background: var(--card2);
+    color: var(--ink);
+    font-family: inherit;
+}
+
+    .dlg-card input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 22%, transparent);
+    }
