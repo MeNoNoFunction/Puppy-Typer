@@ -66,7 +66,7 @@
         const batch = db.batch();
         batch.set(db.doc('users/' + user.uid), { save: json, savedAt }, { merge: true });
         if (summary && summary.username) {
-            batch.set(db.doc('profiles/' + user.uid), { username: summary.username, level: summary.level, bestWpm: summary.bestWpm, updatedAt: savedAt }, { merge: true });
+            batch.set(db.doc('profiles/' + user.uid), { username: summary.username, level: summary.level, bestWpm: summary.bestWpm, seasons: summary.seasons || [], badges: summary.badges || [], updatedAt: savedAt }, { merge: true });
         }
         return batch.commit();
     }

@@ -26,6 +26,7 @@
             <span class="chip level-chip" id="levelChip" title="Your level">Lv 1</span>
             <button id="themeBtn" class="icon-btn" aria-label="Switch between light and dark theme" title="Light / dark">🌙</button>
             <button id="muteBtn" class="icon-btn" aria-label="Toggle sound" title="Sound">🔊</button>
+            <div class="acct-wrap hidden" id="acctWrap"><button id="acctBtn" class="acct-btn" type="button"></button><div id="acctMenu" class="acct-menu hidden" role="menu"></div></div>
         </div>
     </header>
 
@@ -158,6 +159,7 @@
 
         <!-- ================= STATS ================= -->
         <section id="tab-stats" class="tab hidden">
+            <div class="card profile-card" id="profileCard"></div>
             <div class="grid-2">
                 <div class="card">
                     <h2>📊 Your Stats</h2>
@@ -210,6 +212,10 @@
                         <label>
                             Typing sounds
                             <button id="keysToggle" class="small-btn">On</button>
+                        </label>
+                        <label>
+                            Dark stage while typing
+                            <button id="stageToggle" class="small-btn">On</button>
                         </label>
                         <label>
                             Visual effects (pops &amp; sparkles)

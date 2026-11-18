@@ -8,6 +8,11 @@
     const OLD_KEY = 'puppyTypistSave_v1';
     const PASS_TIERS = 30;
     const PASS_XP = 100;
+    // Paw Pass seasons. To start Season 2: change CURRENT_SEASON to 's2', add its name, and give the pass new rewards.
+    // Players' pass progress then resets automatically, but owned cosmetics and the 'seasons' tag list stay.
+    const CURRENT_SEASON = 's1';
+    const SEASON_NAMES = { s1: 'Season 1: Backyard Bash' };
+    const seasonName = id => SEASON_NAMES[id] || ('Season ' + String(id).replace(/\D/g, ''));
     const CATS = CAT_META.map(c => c.id);
     const WINDOW_MS = 1500;
     const CUSTOM = { label: '✏️ My sentences', mult: 0.6, unlock: 1 };
@@ -38,9 +43,9 @@
             taRounds: 0, taBest: 0, quickRound: 0, mysteryOpened: 0, dailyClaims: 0,
             diffsPlayed: [], bestTimes: {},
             dogName: 'Biscuit', difficulty: 'easy', count: 5, muted: false, musicOff: false, keySounds: true,
-            fx: !prefersReduced, textSize: 2, custom: [],
+            fx: !prefersReduced, stage: true, textSize: 2, custom: [],
             owned, equipped,
-            pass: { xp: 0, claimed: [] },
+            pass: { xp: 0, claimed: [] }, passSeason: CURRENT_SEASON, seasons: [], seasonTier: {}, badges: [], badgesSeen: [],
             daily: { date: '', lastVisit: '', streak: 0, quests: [], reward: '' },
             ach: [], history: []
         };
@@ -75,6 +80,7 @@
         s.musicOff = !!raw.musicOff;
         if (typeof raw.keySounds === 'boolean') s.keySounds = raw.keySounds;
         if (typeof raw.fx === 'boolean') s.fx = raw.fx;
+        if (typeof raw.stage === 'boolean') s.stage = raw.stage;
         if ([1, 2, 3].includes(raw.textSize)) s.textSize = raw.textSize;
         if (Array.isArray(raw.custom)) s.custom = cleanCustom(raw.custom.filter(x => typeof x === 'string'));
         CATS.forEach(c => {
@@ -85,6 +91,20 @@
             if (Number.isFinite(raw.pass.xp)) s.pass.xp = Math.max(0, Math.min(PASS_TIERS * PASS_XP, Math.floor(raw.pass.xp)));
             if (Array.isArray(raw.pass.claimed)) s.pass.claimed = raw.pass.claimed.filter(n => Number.isInteger(n) && n >= 1 && n <= PASS_TIERS);
         }
+        // seasons: which seasons this player took part in (permanent tags) + best pass tier reached in each
+        const sid = v => typeof v === 'string' && /^s\d{1,3}$/.test(v);
+        if (sid(raw.passSeason)) s.passSeason = raw.passSeason;
+        if (Array.isArray(raw.seasons)) s.seasons = [...new Set(raw.seasons.filter(sid))];
+        if (raw.seasonTier && typeof raw.seasonTier === 'object') Object.keys(raw.seasonTier).forEach(k => { const v = raw.seasonTier[k]; if (sid(k) && Number.isInteger(v) && v >= 0 && v <= PASS_TIERS) s.seasonTier[k] = v; });
+        if (s.passSeason !== CURRENT_SEASON) {      // a new season started: the pass starts over, everything else stays
+            s.pass = { xp: 0, claimed: [] }; s.passSeason = CURRENT_SEASON;
+        }
+        if (s.pass.xp > 0 && !s.seasons.includes(s.passSeason)) s.seasons.push(s.passSeason);   // players who already earned pass XP get the tag too
+        if (s.pass.xp > 0) s.seasonTier[s.passSeason] = Math.max(s.seasonTier[s.passSeason] || 0, Math.min(PASS_TIERS, Math.floor(s.pass.xp / PASS_XP)));
+        const bid = v => typeof v === 'string' && /^[a-z0-9_]{2,40}$/.test(v);
+        if (Array.isArray(raw.badges)) s.badges = [...new Set(raw.badges.filter(bid))];
+        if (Array.isArray(raw.badgesSeen)) s.badgesSeen = [...new Set(raw.badgesSeen.filter(bid))];
+        syncBadges(s);
         if (raw.daily && typeof raw.daily === 'object') {
             s.daily.date = typeof raw.daily.date === 'string' ? raw.daily.date : '';
             s.daily.lastVisit = typeof raw.daily.lastVisit === 'string' ? raw.daily.lastVisit : '';
@@ -133,7 +153,7 @@
 
     const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
     function applyPrefs() {
-        const dark = save.theme === 'dark' || (save.theme === 'auto' && !!(darkMQ && darkMQ.matches));
+        const dark = save.theme === 'dark' || (save.theme === 'auto' && !!(darkMQ && darkMQ.matches)) || (save.stage && document.body.classList.contains('playing'));
         document.body.classList.toggle('dark', dark);
         const tc = document.querySelector('meta[name=theme-color]');
         if (tc) tc.setAttribute('content', dark ? '#0e1324' : '#eef2fb');
@@ -283,7 +303,27 @@
         sfx.sentence();
         return true;
     }
-    function addPass(n) { save.pass.xp = Math.min(PASS_TIERS * PASS_XP, save.pass.xp + n); }
+    // Season badges come from the seasons a player took part in
+    function syncBadges(s) { s.seasons.forEach(id => { const b = 'season_' + id; if (!s.badges.includes(b)) s.badges.push(b); }); }
+    function announceBadges() {
+        if (document.body.classList.contains('playing')) return;      // toasts are hidden mid-round; try again after
+        const fresh = save.badges.filter(b => !save.badgesSeen.includes(b));
+        if (!fresh.length) return;
+        fresh.forEach((b, i) => {
+            const def = BADGES.find(x => x.id === b);
+            save.badgesSeen.push(b);
+            if (def) setTimeout(() => { toast(`New badge: ${def.name}!`, 'good'); sfx.achieve(); }, 900 + i * 1200);
+        });
+        persist();
+    }
+    function addPass(n) {
+        save.pass.xp = Math.min(PASS_TIERS * PASS_XP, save.pass.xp + n);
+        if (n > 0) {
+            if (!save.seasons.includes(CURRENT_SEASON)) save.seasons.push(CURRENT_SEASON);
+            save.seasonTier[CURRENT_SEASON] = Math.max(save.seasonTier[CURRENT_SEASON] || 0, passTier());
+            syncBadges(save);
+        }
+    }
 
     /* =====================================================
        ART (drawn by art.js)
@@ -337,7 +377,7 @@
         passFill: $('passFill'), passTierLabel: $('passTierLabel'), passXpText: $('passXpText'), passTrack: $('passTrack'), claimAllBtn: $('claimAllBtn'),
         dailyStreak: $('dailyStreak'), questList: $('questList'), achGrid: $('achGrid'), achCount: $('achCount'),
         statTiles: $('statTiles'), historyChart: $('historyChart'),
-        dogNameInput: $('dogNameInput'), textSizeSelect: $('textSizeSelect'), soundToggle: $('soundToggle'), musicToggle: $('musicToggle'), keysToggle: $('keysToggle'), fxToggle: $('fxToggle'),
+        dogNameInput: $('dogNameInput'), textSizeSelect: $('textSizeSelect'), soundToggle: $('soundToggle'), stageToggle: $('stageToggle'), musicToggle: $('musicToggle'), keysToggle: $('keysToggle'), fxToggle: $('fxToggle'),
         customText: $('customText'), saveCustomBtn: $('saveCustomBtn'),
         saveCode: $('saveCode'), exportBtn: $('exportBtn'), importBtn: $('importBtn'), resetBtn: $('resetBtn'),
         wpmStat: $('wpmStat'), accStat: $('accStat'), mistakeStat: $('mistakeStat'), streakStat: $('streakStat'), comboStat: $('comboStat'), sentenceStat: $('sentenceStat'),
@@ -751,7 +791,31 @@
     }
 
     /* ---------- Stats ---------- */
+    function renderProfile() {
+        const box = document.getElementById('profileCard');
+        if (!box) return;
+        const name = acct.username || (acct.user ? (acct.user.email || 'Player').split('@')[0] : 'Guest');
+        const earned = BADGES.filter(b => save.badges.includes(b.id));
+        const showcase = earned.length
+            ? earned.slice(0, 8).map(b => `<button class="badge-big" data-act="badge" data-id="${b.id}" title="${b.name}">${badgeSVG(b.id)}</button>`).join('')
+            : '<span class="muted">No badges yet. Earn one below!</span>';
+        const cats = BADGE_CATEGORIES.map(c => {
+            const list = BADGES.filter(b => b.cat === c.id);
+            const have = list.filter(b => save.badges.includes(b.id)).length;
+            return `<div class="badge-cat"><div class="badge-cat-h"><h3 class="sub-h">${c.label}</h3><small>${have}/${list.length}</small></div>
+        <p class="muted">${c.blurb}</p>
+        <div class="badge-grid">${list.map(b => {
+                const got = save.badges.includes(b.id);
+                return `<button class="badge-tile ${got ? 'got' : 'locked'}" data-act="badge" data-id="${b.id}">
+            <span class="badge-art">${badgeSVG(b.id)}</span><b>${b.name}</b><small>${got ? b.desc : b.how}</small></button>`;
+            }).join('')}</div></div>`;
+        }).join('');
+        box.innerHTML = `<div class="prof-head"><span class="prof-av">${name.charAt(0).toUpperCase()}</span>
+        <div><h2>${name}</h2><small class="muted">Level ${save.level} · ${earned.length} badge${earned.length === 1 ? '' : 's'}</small></div></div>
+      <div class="badge-show">${showcase}</div>${cats}`;
+    }
     function renderStats() {
+        renderProfile();
         const allItems = CATS.reduce((n, c) => n + CATALOG[c].length, 0);
         const haveItems = CATS.reduce((n, c) => n + CATALOG[c].filter(i => isUnlocked(c, i.id)).length, 0);
         const avg = save.history.length ? Math.round(save.history.reduce((a, h) => a + h.wpm, 0) / save.history.length) : 0;
@@ -783,8 +847,9 @@
         el.themeSelect.value = save.theme;
         el.soundToggle.textContent = save.muted ? 'Off' : 'On';
         el.musicToggle.textContent = save.musicOff ? 'Off' : 'On';
+        el.stageToggle.textContent = save.stage ? 'On' : 'Off';
         el.keysToggle.textContent = save.keySounds ? 'On' : 'Off';
-        [el.soundToggle, el.musicToggle, el.keysToggle, el.fxToggle].forEach(b => b.classList.toggle('is-off', b.textContent === 'Off'));
+        [el.soundToggle, el.musicToggle, el.keysToggle, el.fxToggle, el.stageToggle].forEach(b => b.classList.toggle('is-off', b.textContent === 'Off'));
         el.fxToggle.textContent = save.fx ? 'On' : 'Off';
         if (document.activeElement !== el.customText) el.customText.value = save.custom.join('\n');
     }
@@ -849,6 +914,8 @@
         el.results.classList.add('hidden');
         el.game.classList.remove('hidden');
         document.body.classList.add('playing');
+        applyPrefs();
+        el.game.classList.remove('fever');
         el.tapPrompt.classList.add('hidden');
         el.cheer.classList.add('hidden');
         el.hearts.innerHTML = '';
@@ -1024,7 +1091,7 @@
             el.sentenceBox.classList.add('shake');
             sfx.wrong();
             vibrate(25);
-            if (g.combo > 0) { g.combo = 0; AUD.intensity(0); }
+            if (g.combo > 0) { g.combo = 0; AUD.intensity(0); el.game.classList.remove('fever'); }
         }
         if (!g.ta) {
             const p = (g.doneChars + g.pos) / g.totalChars;
@@ -1045,6 +1112,7 @@
             bump(el.comboStat);
         }
         sfx.word(perfect ? g.combo : 0);
+        el.game.classList.toggle('fever', g.combo >= 10);
         AUD.intensity(g.combo >= 8 ? 2 : g.combo >= 3 ? 1 : 0);
         A.hop = Math.max(A.hop, perfect ? 0.7 : 0.4);
         if (perfect) burstAt(w.el, { n: 5, size: 13, spread: 55, icons: ['✨', '⭐'] });
@@ -1346,8 +1414,11 @@
         el.game.style.transform = '';
         el.results.classList.add('hidden');
         document.body.classList.remove('playing');
+        el.game.classList.remove('fever');
+        applyPrefs();
         el.nav.classList.remove('hidden');
         showTab(tab || 'play');
+        announceBadges();
     }
 
     /* =====================================================
@@ -1361,6 +1432,8 @@
             case 'signIn': doSignIn(); break;
             case 'signOut': doSignOut(); break;
             case 'pickName': askUsername(); break;
+            case 'goSettings': showTab('settings'); break;
+            case 'badge': { const b = BADGES.find(x => x.id === d.id); if (b) { const got = save.badges.includes(b.id); toast(got ? `${b.name}: ${b.desc}` : `${b.name}: ${b.how}`, got ? 'good' : 'info'); sfx.pop(); } break; }
             case 'tab': if (d.tab !== currentTab) sfx.tab(); showTab(d.tab); break;
             case 'quit': leaveGame('play'); break;
             case 'cat': wardCat = d.cat; tryOn = null; renderWardrobe(); break;
@@ -1438,6 +1511,11 @@
         toast(save.keySounds ? 'Typing sounds now on!' : 'Typing sounds now off', save.keySounds ? 'on' : 'off');
         save.keySounds ? sfx.on() : sfx.off();
     });
+    el.stageToggle.addEventListener('click', () => {
+        save.stage = !save.stage; persist(); renderSettings();
+        toast(save.stage ? 'Dark stage now on while typing!' : 'Dark stage now off', save.stage ? 'dark' : 'off');
+        save.stage ? sfx.on() : sfx.off();
+    });
     el.fxToggle.addEventListener('click', () => {
         save.fx = !save.fx; persist(); applyPrefs(); renderSettings();
         toast(save.fx ? 'Visual effects now on!' : 'Visual effects now off', save.fx ? 'on' : 'off');
@@ -1490,7 +1568,7 @@
         clearTimeout(acct.timer); acct.timer = null;
         if (!acct.synced || !CLOUD.user()) return;
         try {
-            await CLOUD.pushSave(JSON.stringify(save), save.savedAt || Date.now(), { username: acct.username, level: save.level, bestWpm: save.bestWpm });
+            await CLOUD.pushSave(JSON.stringify(save), save.savedAt || Date.now(), { username: acct.username, level: save.level, bestWpm: save.bestWpm, seasons: save.seasons, badges: save.badges });
             acct.failed = false; acct.state = 'ok';
         } catch (e) { console.warn('Cloud save failed', e); acct.failed = true; acct.state = 'error'; }
         renderAccount();
@@ -1552,6 +1630,8 @@
             }
             try { localStorage.setItem(UID_KEY, user.uid); } catch (e) { /* ignore */ }
             acct.synced = true;
+            try { localStorage.removeItem(GUEST_KEY); } catch (e) { /* ignore */ }
+            hideLanding();
             if (useCloud) { applyCloudSave(cloud); acct.state = 'ok'; if (first) toast('Your progress was loaded from your account!', 'good'); }
             else { acct.state = 'saving'; await pushCloud(); if (first && ls > 0) toast('Your progress is now saved to your account!', 'good'); }
             renderAccount();
@@ -1563,7 +1643,60 @@
         }
     }
 
+    const G_ICON = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>';
+    const ACCT_STATUS = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' };
+    const badgeSVG = id => `<svg viewBox="0 0 64 64" aria-hidden="true">${BADGE_ART[id] || '<circle cx="32" cy="32" r="26" fill="#ffd54f" stroke="#2b2b2b" stroke-width="3.5"/>'}</svg>`;
+    const seasonTags = () => {
+        const mine = BADGES.filter(b => save.badges.includes(b.id));
+        return mine.length ? `<span class="badge-row">${mine.map(b => `<span class="badge-ic" title="${b.name}">${badgeSVG(b.id)}</span>`).join('')}</span>` : '';
+    };
+    function closeAcctMenu() {
+        const m = document.getElementById('acctMenu'), b = document.getElementById('acctBtn');
+        if (m) m.classList.add('hidden');
+        if (b) b.setAttribute('aria-expanded', 'false');
+    }
+    function renderTopAccount() {
+        const wrap = document.getElementById('acctWrap'), btn = document.getElementById('acctBtn'), menu = document.getElementById('acctMenu');
+        if (!wrap) return;
+        if (!CLOUD || !CLOUD.configured || acct.state === 'loading' || acct.state === 'off') { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+        if (!acct.user) {
+            closeAcctMenu();
+            if (btn.dataset.mode !== 'login') {
+                btn.dataset.mode = 'login'; btn.className = 'acct-btn login';
+                btn.removeAttribute('aria-haspopup'); btn.setAttribute('aria-label', 'Log in with Google');
+                btn.innerHTML = G_ICON + '<span class="acct-label">Log in</span>';
+            }
+            return;
+        }
+        const name = acct.username || (acct.user.email || 'Player').split('@')[0];
+        const sig = name + '|' + (acct.user.email || '') + '|' + (acct.username ? 1 : 0) + '|' + save.badges.join();
+        if (btn.dataset.mode !== 'user' || btn.dataset.sig !== sig) {
+            btn.dataset.mode = 'user'; btn.dataset.sig = sig; btn.className = 'acct-btn user';
+            btn.setAttribute('aria-haspopup', 'menu'); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Account: ' + name);
+            btn.innerHTML = `<span class="acct-av">${name.charAt(0).toUpperCase()}</span><span class="acct-label">${name}</span>`;
+            menu.innerHTML = `<div class="am-head"><b>${acct.username || 'No username yet'}</b><small>${acct.user.email || 'Google account'}</small>${seasonTags()}
+          <span class="acct-status ${acct.state}" id="amStatus">${ACCT_STATUS[acct.state] || ACCT_STATUS.ok}</span></div>
+        ${acct.username ? '' : '<button class="am-item" data-act="pickName" role="menuitem">Choose username</button>'}
+        <button class="am-item" data-act="goSettings" role="menuitem">Account settings</button>
+        <button class="am-item danger" data-act="signOut" role="menuitem">Sign out</button>`;
+        } else {
+            const st = document.getElementById('amStatus');
+            if (st) { st.textContent = ACCT_STATUS[acct.state] || ACCT_STATUS.ok; st.className = 'acct-status ' + acct.state; }
+        }
+    }
+    document.getElementById('acctBtn').addEventListener('click', e => {
+        e.stopPropagation();
+        if (!acct.user) { doSignIn(); return; }
+        const m = document.getElementById('acctMenu');
+        const open = m.classList.toggle('hidden') === false;
+        e.currentTarget.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('#acctWrap') || e.target.closest('#acctMenu [data-act]')) closeAcctMenu(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAcctMenu(); });
+
     function renderAccount() {
+        renderTopAccount();
         const box = document.getElementById('accountBody');
         if (!box) return;
         if (!CLOUD || !CLOUD.configured) {
@@ -1577,20 +1710,62 @@
         <button class="small-btn" data-act="signIn">Sign in with Google</button>`;
             return;
         }
-        const sig = (acct.username || '') + '|' + (acct.user.email || '');
+        const sig = (acct.username || '') + '|' + (acct.user.email || '') + '|' + save.badges.join();
         const stEl = box.querySelector('.acct-status');
         const status0 = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' }[acct.state] || 'Saved to your account';
         if (stEl && box.dataset.sig === sig) { stEl.textContent = status0; stEl.className = 'acct-status ' + acct.state; return; }   // don't rebuild buttons mid-click
         box.dataset.sig = sig;
         const status = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' }[acct.state] || 'Saved to your account';
         box.innerHTML = `<div class="acct-row">
-        <div class="acct-name">${acct.username ? `<b>${acct.username}</b>` : '<b class="muted">No username yet</b>'}<small>${acct.user.email || 'Google account'}</small></div>
+        <div class="acct-name">${acct.username ? `<b>${acct.username}</b>` : '<b class="muted">No username yet</b>'}<small>${acct.user.email || 'Google account'}</small>${seasonTags()}</div>
         <span class="acct-status ${acct.state}">${status}</span>
       </div>
       <div class="row">
         ${acct.username ? '' : '<button class="small-btn" data-act="pickName">Choose username</button>'}
         <button class="small-btn ghost" data-act="signOut">Sign out</button>
       </div>`;
+    }
+
+    /* ---------- Launch screen: Google or guest ---------- */
+    const GUEST_KEY = 'puppyTyperGuest';
+    const hasFlag = k => { try { return !!localStorage.getItem(k); } catch (e) { return false; } };
+    function hideLanding() {
+        const L = document.getElementById('landing');
+        if (!L) return;
+        L.classList.add('leaving');
+        document.body.classList.remove('landing-on');
+        setTimeout(() => L.remove(), 350);
+    }
+    function showLanding() {
+        if (document.getElementById('landing') || !CLOUD || !CLOUD.configured) return;
+        document.body.classList.add('landing-on');
+        const L = document.createElement('div');
+        L.id = 'landing'; L.className = 'landing';
+        L.innerHTML = `<div class="land-card">
+      <div class="land-dog">${dogSVG(save.equipped)}</div>
+      <h1>Puppy Typer</h1>
+      <p class="land-tag">Type fast. Your pup runs faster.</p>
+      <button class="google-btn" id="landGoogle" type="button">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <p class="land-note"><b>Saves to your account</b> and follows you to any device.</p>
+      <div class="land-or"><span>or</span></div>
+      <button class="guest-btn" id="landGuest" type="button">Play as guest</button>
+      <p class="land-note warn">Guest progress is saved <b>only on this device and browser</b>. Clearing your browser data can erase it.</p>
+    </div>`;
+        document.body.appendChild(L);
+        const gbtn = L.querySelector('#landGoogle');
+        gbtn.onclick = async () => {
+            gbtn.disabled = true; gbtn.classList.add('busy');
+            await doSignIn();
+            gbtn.disabled = false; gbtn.classList.remove('busy');
+        };
+        L.querySelector('#landGuest').onclick = () => {
+            try { localStorage.setItem(GUEST_KEY, '1'); } catch (e) { /* ignore */ }
+            toast('Playing as guest. Progress saves on this device only.', 'info');
+            hideLanding();
+        };
     }
 
     async function doSignIn() {
@@ -1612,13 +1787,16 @@
         save = freshSave(); Object.assign(save, keep);
         persist(true); ensureDaily(); applyPrefs(); renderAll();
         toast('Signed out', 'off');
+        showLanding();
     }
 
     if (CLOUD) {
         acct.state = CLOUD.configured ? 'loading' : 'off';
+        if (CLOUD.configured && !hasFlag(GUEST_KEY) && !hasFlag(UID_KEY)) showLanding();   // new visitors see it straight away
         CLOUD.onAuth((user, err) => {
-            if (err) { acct.state = 'off'; renderAccount(); return; }
-            if (user) onSignedIn(user); else { acct.user = null; acct.synced = false; acct.state = 'out'; renderAccount(); }
+            if (err) { acct.state = 'off'; renderAccount(); hideLanding(); return; }
+            if (user) onSignedIn(user);
+            else { acct.user = null; acct.synced = false; acct.state = 'out'; renderAccount(); if (!hasFlag(GUEST_KEY)) showLanding(); }
         });
     }
 
@@ -1633,4 +1811,5 @@
     persist(true);
     renderAccount();
     showTab('play');
+    announceBadges();
 })();

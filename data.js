@@ -346,3 +346,27 @@ window.PT_DATA = (() => {
 
     return { CAT_META, CATALOG, DIFFS, TITLES, QUEST_POOL, ACHIEVEMENTS, generateSentences };
 })();
+
+
+/* =========================================================
+   BADGES: shown on the Profile (Stats tab), the Account card and the account menu.
+   To add one: add an entry here + a drawing in BADGE_ART below.
+   Season badges are granted automatically from the player's 'seasons' list (see script.js).
+========================================================= */
+const BADGE_CATEGORIES = [
+    { id: 'season', label: 'Season badges', blurb: 'Earned by playing a Paw Pass season. They never go away, even after the season ends.' }
+];
+const BADGES = [
+    { id: 'season_s1', cat: 'season', name: 'Season 1: Backyard Bash', desc: 'Played the very first Paw Pass season.', how: 'Earn Paw Pass XP during Season 1: Backyard Bash.' }
+];
+const BADGE_ART = {
+    season_s1: `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#ffb300" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5" fill="#ffd54f"/>
+    <g fill="#fff" stroke="#2b2b2b" stroke-width="1.7" stroke-linejoin="round">
+      <rect x="15" y="40.5" width="36" height="3" rx="1"/><rect x="15" y="46" width="36" height="3" rx="1"/>
+      <path d="M17 51 V38.5 L20.2 34.5 L23.4 38.5 V51 Z"/><path d="M25.7 51 V38.5 L28.9 34.5 L32.1 38.5 V51 Z"/><path d="M34.4 51 V38.5 L37.6 34.5 L40.8 38.5 V51 Z"/><path d="M43.1 51 V38.5 L46.3 34.5 L49.5 38.5 V51 Z"/>
+    </g>
+    <g transform="translate(0,-4)"><g stroke="#2b2b2b" stroke-width="2.2" fill="#fffdf2"><circle cx="21.5" cy="24" r="3.5"/><circle cx="21.5" cy="30.5" r="3.5"/><circle cx="42.5" cy="24" r="3.5"/><circle cx="42.5" cy="30.5" r="3.5"/><rect x="22" y="23.5" width="20" height="7.5" rx="3"/></g>
+    <rect x="22" y="24.6" width="20" height="5.3" fill="#fffdf2"/><circle cx="21.5" cy="24" r="2.4" fill="#fffdf2"/><circle cx="21.5" cy="30.5" r="2.4" fill="#fffdf2"/><circle cx="42.5" cy="24" r="2.4" fill="#fffdf2"/><circle cx="42.5" cy="30.5" r="2.4" fill="#fffdf2"/></g>
+    <path d="M50 17 l1.3 3 3 1.3 -3 1.3 -1.3 3 -1.3 -3 -3 -1.3 3 -1.3z" fill="#fff" stroke="#2b2b2b" stroke-width="1.4" stroke-linejoin="round"/>`
+};
