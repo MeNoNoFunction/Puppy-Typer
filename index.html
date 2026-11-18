@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#3d6bff">
+    <meta name="description" content="Puppy Typer: a typing game where your puppy runs faster the faster you type!">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Puppy Typer">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%B6%3C/text%3E%3C/svg%3E">
+    <title>Puppy Typer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="brand">
+            <span class="logo" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><g fill="currentColor"><ellipse cx="9" cy="13" rx="3" ry="3.8" transform="rotate(-18 9 13)" /><ellipse cx="14.5" cy="8.5" rx="3" ry="3.8" /><ellipse cx="21" cy="8.5" rx="3" ry="3.8" /><ellipse cx="26" cy="13.5" rx="3" ry="3.8" transform="rotate(18 26 13.5)" /><path d="M17.5 14c4.2 0 8 4.4 8 8 0 2.6-2.2 4-4.6 4-1.4 0-2.2-.6-3.4-.6s-2 .6-3.4.6c-2.4 0-4.6-1.4-4.6-4 0-3.6 3.8-8 8-8z" /></g></svg>
+            </span>
+            <h1>Puppy Typer</h1>
+        </div>
+        <div class="topbar-right">
+            <span class="chip bones-chip" id="bonesChip" title="Bones: spend them in the Wardrobe">🦴 0</span>
+            <span class="chip level-chip" id="levelChip" title="Your level">Lv 1</span>
+            <button id="themeBtn" class="icon-btn" aria-label="Switch between light and dark theme" title="Light / dark">🌙</button>
+            <button id="muteBtn" class="icon-btn" aria-label="Toggle sound" title="Sound">🔊</button>
+        </div>
+    </header>
+
+    <nav id="nav" class="nav" aria-label="Main">
+        <i class="nav-ind" aria-hidden="true"></i>
+        <button data-act="tab" data-tab="play" class="active"><span class="ni">🎮</span><span class="nl">Play</span></button>
+        <button data-act="tab" data-tab="wardrobe"><span class="ni">👕</span><span class="nl">Wardrobe</span></button>
+        <button data-act="tab" data-tab="pass"><span class="ni">🎟️</span><span class="nl">Paw Pass</span><i id="dotPass" class="dot hidden"></i></button>
+        <button data-act="tab" data-tab="quests"><span class="ni">📜</span><span class="nl">Quests</span><i id="dotQuests" class="dot hidden"></i></button>
+        <button data-act="tab" data-tab="stats"><span class="ni">📊</span><span class="nl">Stats</span></button>
+        <button data-act="tab" data-tab="settings"><span class="ni">⚙️</span><span class="nl">Settings</span></button>
+    </nav>
+
+    <main>
+
+        <!-- ================= PLAY ================= -->
+        <section id="tab-play" class="tab">
+
+            <div class="hero">
+                <div class="hero-copy">
+                    <h2 class="hero-title">Type fast.<br>Your pup runs faster.</h2>
+                    <p class="hero-sub">Type each sentence you see. The quicker and cleaner you type, the faster your dog runs.</p>
+                    <ol class="steps">
+                        <li><span class="sn">1</span><span><b>Type</b> the sentence</span></li>
+                        <li><span class="sn">2</span><span><b>Watch</b> your pup run</span></li>
+                        <li><span class="sn">3</span><span><b>Win</b> a treat and XP</span></li>
+                    </ol>
+                    <div class="cta-row">
+                        <button id="startBtn" class="play-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor" /></svg><span>Play</span></button>
+                        <span class="cta-note" id="ctaNote">Classic · Easy · 5 sentences</span>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div id="playPreview" class="preview-stage live"></div>
+                    <div class="dog-badge"><strong id="playDogName">Biscuit</strong><span id="menuTitle">Tiny Pup</span></div>
+                </div>
+            </div>
+
+            <div class="dash">
+                <div class="card setup">
+                    <h3>Round setup</h3>
+                    <div class="field"><span class="field-label">Mode</span><div id="segMode" class="seg" role="group" aria-label="Mode"></div></div>
+                    <div class="field"><span class="field-label">Difficulty</span><div id="segDiff" class="seg wrap" role="group" aria-label="Difficulty"></div></div>
+                    <p class="field-hint" id="diffHint"></p>
+                    <div class="field" id="lenField"><span class="field-label">Sentences</span><div id="segCount" class="seg" role="group" aria-label="Sentences per round"></div></div>
+                    <div class="sr-only">
+                        <select id="modeSelect" tabindex="-1"><option value="classic">Classic</option><option value="timeattack">Time Attack</option></select>
+                        <select id="difficultySelect" tabindex="-1"></select>
+                        <select id="countSelect" tabindex="-1"><option value="3">3</option><option value="5">5</option><option value="10">10</option></select>
+                    </div>
+                </div>
+
+                <div class="card level-card">
+                    <h3>Your pup</h3>
+                    <div class="level-wrap">
+                        <div class="ring" id="levelRing" style="--p:0"><span id="menuLevel">1</span><small>level</small></div>
+                        <div class="level-info">
+                            <div class="xpbar"><div id="menuXpFill" class="xpfill"></div></div>
+                            <div class="xp-text" id="menuXpText">0 / 100 XP</div>
+                            <p class="level-hint">Earn XP by typing accurately. Fewer mistakes means more XP.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card today-card">
+                    <h3>Today</h3>
+                    <div id="todayBody" class="today-body"></div>
+                    <div class="today-links">
+                        <button class="chip-btn" data-act="tab" data-tab="quests" id="qlQuests">📜 Quests</button>
+                        <button class="chip-btn" data-act="tab" data-tab="pass" id="qlPass">🎟️ Paw Pass</button>
+                        <button class="chip-btn" data-act="tab" data-tab="wardrobe">👕 Dress up</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= WARDROBE ================= -->
+        <section id="tab-wardrobe" class="tab hidden">
+            <div class="ward-layout">
+                <div class="card ward-left">
+                    <div id="wardPreview" class="preview-stage tall"></div>
+                </div>
+                <div class="card">
+                    <button id="mysteryBtn" class="mystery" data-act="mystery">🎁 Mystery Box <small>150 🦴 · a random Bones item</small></button>
+                    <div id="catPills" class="pills"></div>
+                    <div id="itemGrid" class="item-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAW PASS ================= -->
+        <section id="tab-pass" class="tab hidden">
+            <div class="card">
+                <div class="pass-head">
+                    <div>
+                        <h2>🎟️ Paw Pass: Season 1 "Backyard Bash"</h2>
+                        <p class="muted">Every round earns Pass XP. Reach each tier, then claim your reward!</p>
+                    </div>
+                    <button id="claimAllBtn" class="small-btn" data-act="claimAllPass">Claim all</button>
+                </div>
+                <div class="pass-progress">
+                    <div class="pass-tier-label" id="passTierLabel">Tier 0 / 30</div>
+                    <div class="xpbar"><div id="passFill" class="xpfill"></div></div>
+                    <div class="xp-text" id="passXpText"></div>
+                </div>
+                <div id="passTrack" class="pass-track"></div>
+            </div>
+        </section>
+
+        <!-- ================= QUESTS ================= -->
+        <section id="tab-quests" class="tab hidden">
+            <div class="card reward-card">
+                <div id="rewardText" class="reward-text"></div>
+                <button id="rewardBtn" class="small-btn" data-act="claimDaily">Claim</button>
+                <div id="questTimer" class="timer-chip"></div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h2>📜 Daily Quests</h2>
+                    <p class="muted">New quests every day. Daily visit streak: <strong id="dailyStreak">0</strong> 🔥</p>
+                    <div id="questList" class="quest-list"></div>
+                </div>
+                <div class="card">
+                    <h2>🏅 Achievements <small id="achCount" class="muted"></small></h2>
+                    <div id="achGrid" class="ach-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= STATS ================= -->
+        <section id="tab-stats" class="tab hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>📊 Your Stats</h2>
+                    <div id="statTiles" class="stat-tiles"></div>
+                    <h3 class="sub-h">🏁 Best round times</h3>
+                    <div id="bestTimes" class="best-times"></div>
+                </div>
+                <div class="card">
+                    <h2>Recent rounds</h2>
+                    <p class="muted">Bars show WPM (green = 95%+ accuracy). Hover or tap a bar for details. Your last 20 rounds.</p>
+                    <div id="historyChart" class="history"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SETTINGS ================= -->
+        <section id="tab-settings" class="tab hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>⚙️ Settings</h2>
+                    <div class="settings">
+                        <label>
+                            Your dog's name
+                            <input id="dogNameInput" type="text" maxlength="12" value="Biscuit" autocomplete="off">
+                        </label>
+                        <label>
+                            Theme
+                            <select id="themeSelect">
+                                <option value="auto">Auto (match my device)</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark 🌙</option>
+                            </select>
+                        </label>
+                        <label>
+                            Text size while typing
+                            <select id="textSizeSelect">
+                                <option value="1">Small</option>
+                                <option value="2">Normal</option>
+                                <option value="3">Large</option>
+                            </select>
+                        </label>
+                        <label>
+                            Sound effects
+                            <button id="soundToggle" class="small-btn">On</button>
+                        </label>
+                        <label>
+                            Music
+                            <button id="musicToggle" class="small-btn">On</button>
+                        </label>
+                        <label>
+                            Typing sounds
+                            <button id="keysToggle" class="small-btn">On</button>
+                        </label>
+                        <label>
+                            Visual effects (pops &amp; sparkles)
+                            <button id="fxToggle" class="small-btn">On</button>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>✏️ My own sentences</h2>
+                    <p class="muted">Great for teachers and classes! Type one sentence per line (up to 40). Then pick <strong>My sentences</strong> as the difficulty on the Play tab. Keyboard letters, numbers and punctuation only.</p>
+                    <textarea id="customText" rows="6" placeholder="The quick brown fox jumps over the lazy dog.&#10;Practice makes progress."></textarea>
+                    <div class="row"><button id="saveCustomBtn" class="small-btn">Save my sentences</button></div>
+                </div>
+
+                <div class="card">
+                    <h2>👤 Account</h2>
+                    <p class="muted">Sign in with Google is coming in a future update. For now your progress is saved on <strong>this device and browser only</strong>. Use the save code to move it to another device.</p>
+                    <button class="small-btn" disabled>Sign in with Google (coming soon)</button>
+                </div>
+
+                <div class="card">
+                    <h2>💾 Save code</h2>
+                    <p class="muted">Copy your code to back up your progress, or paste a code to restore it.</p>
+                    <textarea id="saveCode" rows="4" placeholder="Your save code appears here..."></textarea>
+                    <div class="row">
+                        <button id="exportBtn" class="small-btn">Show my save code</button>
+                        <button id="importBtn" class="small-btn">Load this code</button>
+                    </div>
+                    <button id="resetBtn" class="link-btn">Reset all progress</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= GAME ================= -->
+        <section id="game" class="hidden">
+            <div class="game-inner">
+
+                <div class="gbar">
+                    <button id="quitBtn" class="quit-btn" data-act="quit">✕ Quit</button>
+                    <div class="progress"><div id="progFill"></div></div>
+                    <span id="timerStat" class="timer-stat" title="Time">0:00</span>
+                    <span id="sentenceStat" class="sent-count">1/5</span>
+                </div>
+
+                <div id="sentenceBox" class="sentence-box" aria-live="off"></div>
+
+                <div class="stats">
+                    <div class="stat"><span class="label">WPM</span><span id="wpmStat">0</span></div>
+                    <div class="stat"><span class="label">Accuracy</span><span id="accStat">100%</span></div>
+                    <div class="stat"><span class="label">Mistakes</span><span id="mistakeStat">0</span></div>
+                    <div class="stat"><span class="label">Streak</span><span id="streakStat">0</span></div>
+                    <div class="stat"><span class="label">Combo 🔥</span><span id="comboStat">0</span></div>
+                </div>
+
+                <div id="scene" class="scene">
+                    <div id="sky" class="sky"></div>
+                    <div id="layFar" class="layer far"></div>
+                    <div id="layMid" class="layer mid"></div>
+                    <div class="ground"><div id="stripes" class="stripes"></div></div>
+                    <div id="layProps" class="layer props"></div>
+                    <div id="treat" class="treat">🦴</div>
+                    <div id="trail" class="trail"></div>
+
+                    <div id="dogWrap" class="dog-wrap">
+                        <div id="dogNameTag" class="dog-name">Biscuit</div>
+                        <div id="dogSlot"></div>
+                    </div>
+
+                    <div id="cheer" class="cheer hidden"></div>
+                    <div id="hearts" class="hearts"></div>
+                </div>
+
+                <div id="speedLabel" class="speed-label">Start typing to wake up your pup! 😴</div>
+                <p class="hint">Type the highlighted letter. Wrong keys won't move you forward. Press <kbd>Esc</kbd> to quit.</p>
+
+                <button id="tapPrompt" class="tap-prompt hidden">⌨️ Tap here to bring the keyboard back</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Hidden input: this is what opens the keyboard on phones and tablets -->
+    <input id="typer" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+           enterkeyhint="done" aria-label="Type here" data-gramm="false" data-lpignore="true" tabindex="-1">
+
+    <!-- ================= RESULTS ================= -->
+    <div id="results" class="overlay hidden">
+        <div class="modal">
+            <h2 id="resTitle">Good dog!</h2>
+            <div id="resStars" class="stars"></div>
+            <p id="resMessage" class="res-message"></p>
+            <p id="resTime" class="res-time"></p>
+
+            <div class="res-grid">
+                <div><span id="resWpm">0</span><small>WPM</small></div>
+                <div><span id="resAcc">0%</span><small>Accuracy</small></div>
+                <div><span id="resMistakes">0</span><small>Mistakes</small></div>
+                <div><span id="resStreak">0</span><small>Best streak</small></div>
+            </div>
+
+            <div class="rewards">
+                <span id="resXp" class="reward-pill">+0 XP</span>
+                <span id="resBones" class="reward-pill">+0 🦴</span>
+            </div>
+
+            <ul id="resNotes" class="notes"></ul>
+
+            <div class="xpbar"><div id="resXpFill" class="xpfill"></div></div>
+            <div class="xp-text" id="resXpText"></div>
+
+            <p id="resTip" class="tip"></p>
+
+            <div class="modal-buttons">
+                <button id="againBtn" class="big-btn">🔁 Play Again</button>
+                <button id="menuBtn" class="big-btn secondary">🏠 Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toasts" class="toasts"></div>
+    <div id="fx" class="fx-layer" aria-hidden="true"></div>
+
+    <script src="data.js"></script>
+    <script src="icons.js"></script>
+    <script src="audio.js"></script>
+    <script src="art.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
