@@ -162,6 +162,8 @@
         return freshSave();
     }
 
+    let shownErr = false;
+    window.addEventListener('error', e => { if (shownErr) return; shownErr = true; try { toast('Something went wrong: ' + (e.message || 'error') + '. Try a hard refresh (Ctrl+F5).', 'warn'); } catch (x) { /* ignore */ } });
     let save = loadSave();
     // quiet = true: write without counting it as a change (used at startup and when loading from the cloud)
     const acct = { state: 'off', user: null, username: '', synced: false, timer: null, failed: false };
@@ -2050,8 +2052,8 @@
         toast(save.custom.length ? `Saved ${save.custom.length} sentence${save.custom.length === 1 ? '' : 's'}! Pick "My sentences" on the Play tab.` : 'Custom list cleared.', 'info');
     });
 
-    el.saveNowBtn.addEventListener('click', saveNow);
-    el.resetBtn.addEventListener('click', () => {
+    if (el.saveNowBtn) el.saveNowBtn.addEventListener('click', saveNow);   // (guarded so an older index.html can't stop the game starting)
+    if (el.resetBtn) el.resetBtn.addEventListener('click', () => {
         if (confirm('Reset your level, XP, items and records? This cannot be undone.' + (acct.user ? ' Your account save will be reset too.' : ''))) {
             save = freshSave();
             persist();
