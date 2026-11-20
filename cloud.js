@@ -72,15 +72,20 @@
         const t1 = Date.now();
         return snap.data().t.toMillis() - (t0 + t1) / 2;
     }
-    function pushSave(json, savedAt, summary, core) {
-        const batch = db.batch();
-        const doc = { save: json, savedAt };
-        if (core) { doc.core = core; doc.coreAt = firebase.firestore.FieldValue.serverTimestamp(); }
-        batch.set(db.doc('users/' + user.uid), doc, { merge: true });
+    // Three separate writes, so a rejected 'core' (anti-cheat limits) or profile can never stop the save itself.
+    async function pushSave(json, savedAt, summary, core) {
+        const out = { save: false, core: !core, profile: true };
+        await db.doc('users/' + user.uid).set({ save: json, savedAt }, { merge: true });
+        out.save = true;
         if (summary && summary.username) {
-            batch.set(db.doc('profiles/' + user.uid), { username: summary.username, level: summary.level, bestWpm: summary.bestWpm, seasons: summary.seasons || [], badges: summary.badges || [], updatedAt: savedAt }, { merge: true });
+            try { await db.doc('profiles/' + user.uid).set({ username: summary.username, level: summary.level, bestWpm: summary.bestWpm, seasons: summary.seasons || [], badges: summary.badges || [], updatedAt: savedAt }, { merge: true }); }
+            catch (e) { out.profile = false; console.warn('Profile update skipped', e); }
         }
-        return batch.commit();
+        if (core) {
+            try { await db.doc('users/' + user.uid).set({ core, coreAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }); out.core = true; }
+            catch (e) { out.core = false; console.warn('Core update skipped', e); }
+        }
+        return out;
     }
     async function claimUsername(name) {
         const bad = usernameProblem(name);

@@ -166,7 +166,7 @@
     // quiet = true: write without counting it as a change (used at startup and when loading from the cloud)
     const acct = { state: 'off', user: null, username: '', synced: false, timer: null, failed: false };
     function persist(quiet) {
-        if (!quiet) save.savedAt = Date.now();
+        if (!quiet) save.savedAt = tnow();
         try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* ignore */ }
         if (!quiet && acct.synced) scheduleCloudPush();
     }
@@ -510,7 +510,7 @@
         statTiles: $('statTiles'), historyChart: $('historyChart'),
         dogNameInput: $('dogNameInput'), textSizeSelect: $('textSizeSelect'), soundToggle: $('soundToggle'), stageToggle: $('stageToggle'), musicToggle: $('musicToggle'), keysToggle: $('keysToggle'), fxToggle: $('fxToggle'),
         customText: $('customText'), saveCustomBtn: $('saveCustomBtn'),
-        saveCode: $('saveCode'), exportBtn: $('exportBtn'), importBtn: $('importBtn'), resetBtn: $('resetBtn'),
+        saveNowBtn: $('saveNowBtn'), resetBtn: $('resetBtn'),
         wpmStat: $('wpmStat'), accStat: $('accStat'), mistakeStat: $('mistakeStat'), streakStat: $('streakStat'), comboStat: $('comboStat'), sentenceStat: $('sentenceStat'),
         progFill: $('progFill'), raceTrack: $('raceTrack'), raceCount: $('raceCount'), tapPrompt: $('tapPrompt'),
         scene: $('scene'), layFar: $('layFar'), layMid: $('layMid'), layProps: $('layProps'), sky: $('sky'), stripes: $('stripes'), dogWrap: $('dogWrap'), dogSlot: $('dogSlot'), dogNameTag: $('dogNameTag'),
@@ -2050,18 +2050,7 @@
         toast(save.custom.length ? `Saved ${save.custom.length} sentence${save.custom.length === 1 ? '' : 's'}! Pick "My sentences" on the Play tab.` : 'Custom list cleared.', 'info');
     });
 
-    el.exportBtn.addEventListener('click', () => {
-        el.saveCode.value = exportCode();
-        el.saveCode.select();
-        toast('Save code ready. Copy it somewhere safe.', 'info');
-    });
-    el.importBtn.addEventListener('click', () => {
-        try {
-            importCode(el.saveCode.value);
-            toast('Progress loaded!', 'good');
-            renderAll();
-        } catch (err) { toast('That save code is not valid.', 'warn'); sfx.error(); }
-    });
+    el.saveNowBtn.addEventListener('click', saveNow);
     el.resetBtn.addEventListener('click', () => {
         if (confirm('Reset your level, XP, items and records? This cannot be undone.' + (acct.user ? ' Your account save will be reset too.' : ''))) {
             save = freshSave();
@@ -2561,13 +2550,17 @@
     /* The 'core' is the part of your save that matters to other people (bones, levels, cosmetics, badges).
        It is stored as plain fields so Firestore's rules can check how fast it grows. */
     const validBadges = () => save.badges.filter(id => BADGES.some(b => b.id === id));
-    function coreOf() {
+    function coreOf(s0 = save) {
         return {
-            bones: Math.max(0, Math.floor(save.bones)), level: Math.max(1, save.level | 0), passXp: Math.max(0, Math.floor(save.pass.xp)), games: Math.max(0, save.games | 0),
-            ownedIds: CATS.flatMap(c => save.owned[c].map(id => c + ':' + id)), badges: validBadges()
+            bones: Math.max(0, Math.floor(s0.bones)), level: Math.max(1, s0.level | 0), passXp: Math.max(0, Math.floor(s0.pass.xp)), games: Math.max(0, s0.games | 0),
+            ownedIds: CATS.flatMap(c => s0.owned[c].map(id => c + ':' + id)), badges: s0.badges.filter(id => BADGES.some(b => b.id === id)), at: Math.max(0, Math.floor(s0.savedAt || 0))
         };
     }
-    // Put the checked values from the account over the save blob (the blob alone is not trusted)
+    const coreKey = c => JSON.stringify(Object.assign({}, c, { at: 0 }));
+    // the same "believable growth" limits that firestore.rules enforces (d = seconds)
+    const growthOk = (o, c, d) => c.bones <= o.bones + 800 + 6 * d && c.level <= o.level + 1 + d / 20 && c.ownedIds.length <= o.ownedIds.length + 3 + d / 60
+        && c.badges.length <= o.badges.length + 3 && c.passXp <= o.passXp + 300 + 5 * d && c.games <= o.games + 1 + d / 4;
+    // Put the checked values from the account over the save blob
     function overlayCore(obj, core) {
         if (!core || !Array.isArray(core.ownedIds) || !Array.isArray(core.badges)) return obj;
         const o = JSON.parse(JSON.stringify(obj));
@@ -2578,19 +2571,76 @@
         o.badges = core.badges.slice();
         return o;
     }
+    // What the account holds: the full save, unless it has been edited in a way the checked core says is not believable
+    function cloudFromProfile(prof) {
+        if (!prof || !prof.save) return null;
+        const raw = JSON.parse(prof.save), blob = normalize(raw), core = prof.core;
+        if (!core || !Array.isArray(core.ownedIds) || !Array.isArray(core.badges)) return blob;
+        const cAt = core.at || (prof.coreAt && prof.coreAt.toMillis ? prof.coreAt.toMillis() : 0);
+        if (!cAt || (blob.savedAt || 0) > cAt + 1500) {
+            if (!cAt || growthOk(core, coreOf(blob), ((blob.savedAt || 0) - cAt) / 1000)) return blob;     // newer than the last checkpoint, and believable
+        }
+        return normalize(overlayCore(raw, core));
+    }
+    // Combine two saves (this device + the account) so nothing is ever lost
+    const MAX_FIELDS = ['bestWpm', 'bestAcc', 'games', 'perfects', 'maxStreak', 'totalChars', 'hardRounds', 'totalTime', 'bestCombo', 'questsDone', 'customRounds', 'nightRounds', 'morningRounds', 'taRounds', 'taBest', 'shopBuys', 'endlessBest', 'dailyWins', 'goldTotal', 'twistRounds', 'quickRound', 'mysteryOpened', 'dailyClaims'];
+    const uniq = (...lists) => [...new Set([].concat(...lists.map(l => l || [])))];
+    function mergeSaves(a, b) {
+        const newer = (a.savedAt || 0) >= (b.savedAt || 0) ? a : b;
+        const m = JSON.parse(JSON.stringify(newer));
+        MAX_FIELDS.forEach(k => { m[k] = Math.max(a[k] || 0, b[k] || 0); });
+        const hi = (a.level > b.level || (a.level === b.level && a.xp >= b.xp)) ? a : b;
+        m.level = hi.level; m.xp = hi.xp;
+        CATS.forEach(c => { m.owned[c] = uniq(a.owned[c], b.owned[c]); });
+        ['ach', 'badges', 'badgesSeen', 'seasons', 'topicsPlayed', 'diffsPlayed', 'redeemed'].forEach(k => { m[k] = uniq(a[k], b[k]); });
+        Object.keys(Object.assign({}, a.seasonTier, b.seasonTier)).forEach(k => { m.seasonTier[k] = Math.max((a.seasonTier || {})[k] || 0, (b.seasonTier || {})[k] || 0); });
+        if (a.passSeason === b.passSeason) m.pass = { xp: Math.max(a.pass.xp, b.pass.xp), claimed: uniq(a.pass.claimed, b.pass.claimed) };
+        Object.keys(Object.assign({}, a.bestTimes, b.bestTimes)).forEach(k => { const x = (a.bestTimes || {})[k], y = (b.bestTimes || {})[k]; m.bestTimes[k] = x && y ? Math.min(x, y) : (x || y); });
+        Object.keys(Object.assign({}, a.boosts, b.boosts)).forEach(k => { m.boosts[k] = Math.max((a.boosts || {})[k] || 0, (b.boosts || {})[k] || 0); });
+        Object.keys(Object.assign({}, a.tokens, b.tokens)).forEach(k => { m.tokens[k] = newer.tokens[k] || 0; });
+        m.savedAt = Math.max(a.savedAt || 0, b.savedAt || 0);
+        return m;
+    }
     async function pushCloud() {
         clearTimeout(acct.timer); acct.timer = null;
         if (!acct.synced || !CLOUD.user()) return;
         try {
-            // core changes may only be sent once every 25s (the server enforces 20s); the rest of the save goes every time
-            const core = coreOf(), cj = JSON.stringify(core);
-            const send = cj !== acct.coreSent && tnow() - (acct.coreAt || 0) >= 25000;
-            await CLOUD.pushSave(JSON.stringify(save), save.savedAt || Date.now(), { username: acct.username, level: careerLevel(), bestWpm: Math.min(300, save.bestWpm), seasons: save.seasons, badges: validBadges() }, send ? core : null);
-            if (send) { acct.coreSent = cj; acct.coreAt = tnow(); }
-            else if (cj !== acct.coreSent) { clearTimeout(acct.coreT); acct.coreT = setTimeout(pushCloud, 26000 - Math.min(25000, tnow() - (acct.coreAt || 0))); }
-            acct.failed = false; acct.state = 'ok';
-        } catch (e) { console.warn('Cloud save failed', e); acct.failed = true; acct.state = 'error'; }
+            // 'core' changes may be sent once every 25s (the server enforces 20s); the whole save goes every time
+            const core = coreOf(), ck = coreKey(core);
+            const want = ck !== acct.coreSent;
+            const send = want && tnow() - (acct.coreAt || 0) >= 25000;
+            const out = await CLOUD.pushSave(JSON.stringify(save), save.savedAt || tnow(), { username: acct.username, level: careerLevel(), bestWpm: Math.min(300, save.bestWpm), seasons: save.seasons, badges: validBadges() }, send ? core : null);
+            const coreDone = send && out && out.core !== false;
+            if (coreDone) { acct.coreSent = ck; acct.coreAt = tnow(); }
+            clearTimeout(acct.coreT);
+            if (want && !coreDone) acct.coreT = setTimeout(pushCloud, send ? 45000 : Math.max(2000, 26000 - (tnow() - (acct.coreAt || 0))));
+            acct.failed = false; acct.state = 'ok'; acct.lastSaved = Date.now();
+        } catch (e) { console.warn('Cloud save failed', e); acct.failed = true; acct.state = 'error'; clearTimeout(acct.coreT); acct.coreT = setTimeout(pushCloud, 20000); }
         renderAccount();
+    }
+    // Pick up changes made on another device (on focus, and every 45 seconds while the game is open)
+    async function syncDown() {
+        if (!acct.user || !acct.synced || acct.pulling || (g && g.active) || acct.timer) return;
+        const ae = document.activeElement; if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) return;
+        acct.pulling = true;
+        try {
+            const prof = await CLOUD.getProfile(), cloud = cloudFromProfile(prof);
+            if (cloud && (cloud.savedAt || 0) > (save.savedAt || 0) + 500 && !acct.timer) {
+                applyCloudSave(mergeSaves(save, cloud));
+                toast('Updated from your other device', 'info');
+            }
+        } catch (e) { /* try again next time */ }
+        acct.pulling = false;
+    }
+    setInterval(() => { if (!document.hidden) syncDown(); }, 45000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) syncDown(); });
+    async function saveNow() {
+        sfx.pop();
+        if (!acct.user || !CLOUD || !CLOUD.configured) { persist(); toast('Saved on this device. Sign in with Google to keep it on every device.', 'info'); return; }
+        if (!acct.synced) { toast('Still connecting to your account...', 'warn'); return; }
+        persist(); acct.state = 'saving'; renderAccount();
+        await pushCloud();
+        toast(acct.failed ? 'Could not reach your account. Will keep trying.' : 'Saved to your account ✓', acct.failed ? 'warn' : 'good');
     }
     window.addEventListener('online', () => { if (acct.failed) scheduleCloudPush(true); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && acct.timer) pushCloud(); });
@@ -2640,22 +2690,25 @@
             const prof = await CLOUD.getProfile();
             acct.username = (prof && prof.username) || '';
             let cloud = null;
-            try { cloud = prof && prof.save ? normalize(overlayCore(JSON.parse(prof.save), prof.core)) : null; } catch (e) { console.warn('cloud parse', e); cloud = null; }
+            try { cloud = cloudFromProfile(prof); } catch (e) { console.warn('cloud parse', e); cloud = null; }
             await syncClock();
             acct.coreAt = prof && prof.coreAt && prof.coreAt.toMillis ? prof.coreAt.toMillis() : 0;
-            acct.coreSent = prof && prof.core ? JSON.stringify(prof.core) : '';
+            acct.coreSent = prof && prof.core ? coreKey(prof.core) : '';
             const first = localStorage.getItem(UID_KEY) !== user.uid;
-            const ls = progressScore(save), cs = cloud ? progressScore(cloud) : 0;
-            let useCloud = !!cloud && (cloud.savedAt || 0) >= (save.savedAt || 0);
-            if (cloud && first && ls > 0 && cs > 0 && ls !== cs) {
-                useCloud = confirm(`This account already has progress saved (career level ${cloud.level}). This device has different progress (career level ${careerLevel()}).\n\nOK = use the account's progress\nCancel = replace it with this device's progress`);
-            }
             try { localStorage.setItem(UID_KEY, user.uid); } catch (e) { /* ignore */ }
             acct.synced = true;
             try { localStorage.removeItem(GUEST_KEY); } catch (e) { /* ignore */ }
             hideLanding();
-            if (useCloud) { applyCloudSave(cloud); acct.state = 'ok'; if (first) toast('Your progress was loaded from your account!', 'good'); }
-            else { acct.state = 'saving'; await pushCloud(); if (first && ls > 0) toast('Your progress is now saved to your account!', 'good'); }
+            if (cloud) {
+                // merge this device with the account: nothing is lost from either side
+                const merged = mergeSaves(save, cloud);
+                const differsLocal = JSON.stringify(merged) !== JSON.stringify(save), differsCloud = JSON.stringify(merged) !== JSON.stringify(cloud);
+                if (differsLocal) applyCloudSave(merged);
+                acct.state = 'saving';
+                if (differsCloud) await pushCloud(); else acct.state = 'ok';
+                acct.lastSaved = Date.now();
+                if (first) toast('Your progress was loaded from your account!', 'good');
+            } else { acct.state = 'saving'; await pushCloud(); if (first) toast('Your progress is now saved to your account!', 'good'); }
             renderAccount();
             if (!acct.username) askUsername(); else if (first) toast(`Signed in as ${acct.username}`, 'on');
         } catch (e) {
@@ -2720,10 +2773,11 @@
 
     function renderAccount() {
         renderTopAccount();
+        updateSaveInfo();
         const box = document.getElementById('accountBody');
         if (!box) return;
         if (!CLOUD || !CLOUD.configured) {
-            box.innerHTML = '<p class="muted">Cloud saves are not set up yet. Your progress is saved on <strong>this device and browser only</strong>. Use the save code below to move it to another device.</p>';
+            box.innerHTML = '<p class="muted">Cloud saves are not set up yet. Your progress is saved on <strong>this device and browser only</strong>. Sign-in is needed to keep it on other devices.</p>';
             return;
         }
         if (acct.state === 'loading') { box.innerHTML = '<p class="muted">Checking your account...</p>'; return; }
@@ -2736,6 +2790,7 @@
         const sig = (acct.username || '') + '|' + (acct.user.email || '') + '|' + save.badges.join();
         const stEl = box.querySelector('.acct-status');
         const status0 = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' }[acct.state] || 'Saved to your account';
+        updateSaveInfo();
         if (stEl && box.dataset.sig === sig) { stEl.textContent = status0; stEl.className = 'acct-status ' + acct.state; return; }   // don't rebuild buttons mid-click
         box.dataset.sig = sig;
         const status = { syncing: 'Syncing...', saving: 'Saving...', ok: 'Saved to your account', error: 'Could not save. Will retry' }[acct.state] || 'Saved to your account';
@@ -2749,6 +2804,13 @@
       </div>`;
     }
 
+    function updateSaveInfo() {
+        const n = document.getElementById('saveInfo'); if (!n) return;
+        const t = acct.lastSaved ? new Date(acct.lastSaved).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+        n.textContent = acct.user && CLOUD && CLOUD.configured
+            ? 'Everything saves to your account automatically: bones, levels, cosmetics, badges and settings. Sign in on any device to pick up where you left off.' + (t ? ` Last saved at ${t}.` : '')
+            : 'Your progress is saved on this device only. Sign in with Google to keep it on every device.';
+    }
     /* ---------- Launch screen: Google or guest ---------- */
     const GUEST_KEY = 'puppyTyperGuest';
     const hasFlag = k => { try { return !!localStorage.getItem(k); } catch (e) { return false; } };
