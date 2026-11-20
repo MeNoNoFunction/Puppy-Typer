@@ -1,3 +1,4 @@
+function careerOf(s) { return Object.values((s && s.seasonTier) || {}).reduce((a, b) => a + (+b || 0), 0); }
 /* =========================================================
    PUPPY TYPIST - GAME DATA
    Add new items, quests, achievements and sentences here.
@@ -7,6 +8,10 @@
      { type: 'bones', cost: 150 }     buy it in the Wardrobe with bones
      { type: 'pass',  tier: 12 }      reward on the Paw Pass (claim it)
      { type: 'ach',   id: 'wpm_50' }  unlocks with that achievement
+     { type: 'code' }                 EXCLUSIVE: only a redeem code (see CODES at the bottom) unlocks it
+   IMPORTANT: never DELETE an item from here, even if its code is retired. Players' saves keep the
+   item by its id, and deleting it would make the game drop it from their wardrobe. To retire a
+   code, remove it from CODES only; people who already redeemed it keep everything.
    The FIRST item in each category must be free (it's the default).
 ========================================================= */
 window.PT_DATA = (() => {
@@ -32,7 +37,9 @@ window.PT_DATA = (() => {
             { id: 'husky', name: 'Husky', icon: '🐺', src: { type: 'pass', tier: 14 } },
             { id: 'poodle', name: 'Poodle', icon: '🐩', src: { type: 'bones', cost: 400 } },
             { id: 'whippet', name: 'Whippet', icon: '💨', src: { type: 'level', level: 14 } },
-            { id: 'shiba', name: 'Shiba', icon: '🦊', src: { type: 'pass', tier: 22 } }
+            { id: 'shiba', name: 'Shiba', icon: '🦊', src: { type: 'pass', tier: 22 } },
+            { id: 'mutt', name: 'Mutt', icon: '🐕', src: { type: 'code' } },   // EXCLUSIVE: redeem code only
+            { id: 'lab', name: 'Labrador', icon: '🦮', rarity: 'mythic', src: { type: 'bones', cost: 0 } }   // the ONLY Mythic item
         ],
         coat: [
             { id: 'golden', name: 'Golden', fur: '#e8b04a', dark: '#c88a2a', light: '#f6d594', src: { type: 'free' } },
@@ -84,7 +91,8 @@ window.PT_DATA = (() => {
             { id: 'witch', name: 'Witch Hat', icon: '🧙‍♀️', src: { type: 'pass', tier: 8 } },
             { id: 'antlers', name: 'Reindeer Antlers', icon: '🦌', src: { type: 'pass', tier: 19 } },
             { id: 'tiara', name: 'Tiara', icon: '👸', src: { type: 'bones', cost: 330 } },
-            { id: 'ninja', name: 'Ninja Band', icon: '🥷', src: { type: 'ach', id: 'wpm_60' } }
+            { id: 'ninja', name: 'Ninja Band', icon: '🥷', src: { type: 'ach', id: 'wpm_60' } },
+            { id: 'pinkcrown', name: 'Pink Crown', icon: '👑', src: { type: 'code' } }   // EXCLUSIVE: redeem code only
         ],
         neck: [
             { id: 'collar_red', name: 'Red Collar', icon: '🔴', src: { type: 'free' } },
@@ -104,6 +112,7 @@ window.PT_DATA = (() => {
             { id: 'cape', name: 'Hero Cape', icon: '🦸', src: { type: 'pass', tier: 28 } },
             { id: 'collar_pink', name: 'Pink Collar', icon: '🩷', src: { type: 'bones', cost: 60 } },
             { id: 'collar_gold', name: 'Gold Collar', icon: '🟡', src: { type: 'bones', cost: 200 } },
+            { id: 'collar_babypink', name: 'Baby Pink Collar', icon: '🩷', src: { type: 'code' } },   // EXCLUSIVE: redeem code only
             { id: 'bandana_blue', name: 'Blue Bandana', icon: '🔷', src: { type: 'bones', cost: 120 } },
             { id: 'ribbon', name: 'Gift Ribbon', icon: '🎁', src: { type: 'bones', cost: 100 } },
             { id: 'dogtag', name: 'Big Dog Tag', icon: '🏷️', src: { type: 'level', level: 7 } },
@@ -217,7 +226,7 @@ window.PT_DATA = (() => {
         { id: 'streak_50', name: 'On a Roll', desc: 'Type 50 letters in a row, no mistakes', bones: 80, check: s => s.maxStreak >= 50 },
         { id: 'streak_100', name: 'Unstoppable', desc: 'Type 100 letters in a row, no mistakes', bones: 150, check: s => s.maxStreak >= 100 },
         { id: 'level_5', name: 'Rising Star', desc: 'Reach level 5', bones: 50, check: s => s.level >= 5 },
-        { id: 'level_10', name: 'Top of the Pack', desc: 'Reach level 10', bones: 100, check: s => s.level >= 10 },
+        { id: 'level_10', name: 'Top of the Pack', desc: 'Reach Career level 10', bones: 100, check: s => careerOf(s) >= 10 },
         { id: 'level_20', name: 'Legend', desc: 'Reach level 20', bones: 250, check: s => s.level >= 20 },
         { id: 'chars_1000', name: 'Thousand Letters', desc: 'Type 1,000 correct letters', bones: 50, check: s => s.totalChars >= 1000 },
         { id: 'chars_10000', name: 'Ten Thousand Club', desc: 'Type 10,000 correct letters', bones: 200, check: s => s.totalChars >= 10000 },
@@ -229,7 +238,7 @@ window.PT_DATA = (() => {
         { id: 'rounds_100', name: 'Century Club', desc: 'Finish 100 rounds', bones: 250, check: s => s.games >= 100 },
         { id: 'rounds_250', name: 'Kennel Master', desc: 'Finish 250 rounds', bones: 500, check: s => s.games >= 250 },
         { id: 'level_15', name: 'Pack Leader', desc: 'Reach level 15', bones: 150, check: s => s.level >= 15 },
-        { id: 'level_25', name: 'Hall of Fame', desc: 'Reach level 25', bones: 350, check: s => s.level >= 25 },
+        { id: 'level_25', name: 'Hall of Fame', desc: 'Reach Career level 25', bones: 350, check: s => careerOf(s) >= 25 },
         { id: 'level_30', name: 'Paw-fessor', desc: 'Reach level 30', bones: 500, check: s => s.level >= 30 },
         { id: 'chars_50000', name: 'Novelist', desc: 'Type 50,000 correct letters', bones: 400, check: s => s.totalChars >= 50000 },
         { id: 'perfects_25', name: 'Pawfection', desc: 'Finish 25 rounds with 0 mistakes', bones: 300, check: s => s.perfects >= 25 },
@@ -253,9 +262,11 @@ window.PT_DATA = (() => {
         { id: 'own_30', name: 'Collector', desc: 'Unlock 30 items', bones: 100, check: (s, c) => c.owned >= 30 },
         { id: 'own_60', name: 'Hoarder', desc: 'Unlock 60 items', bones: 250, check: (s, c) => c.owned >= 60 },
         { id: 'own_100', name: 'Walking Museum', desc: 'Unlock 100 items', bones: 500, check: (s, c) => c.owned >= 100 },
-        { id: 'pass_10', name: 'Pass Climber', desc: 'Reach Paw Pass tier 10', bones: 100, check: (s, c) => c.passTier >= 10 },
-        { id: 'pass_30', name: 'Season Complete', desc: 'Reach Paw Pass tier 30', bones: 400, check: (s, c) => c.passTier >= 30 },
-        { id: 'lucky_5', name: 'Lucky Dog', desc: 'Open 5 Mystery Boxes', bones: 100, check: s => s.mysteryOpened >= 5 },
+        { id: 'pass_10', name: 'Pass Climber', desc: 'Reach Season Level 10', bones: 100, check: (s, c) => c.passTier >= 10 },
+        { id: 'pass_30', name: 'Halfway Hero', desc: 'Reach Season Level 30', bones: 300, check: (s, c) => c.passTier >= 30 },
+        { id: 'pass_60', name: 'Season Veteran', desc: 'Reach Season Level 60', bones: 600, check: (s, c) => c.passTier >= 60 },
+        { id: 'pass_100', name: 'Season Legend', desc: 'Reach Season Level 100', bones: 1500, check: (s, c) => c.passTier >= 100 },
+        { id: 'shop_5', name: 'Smart Shopper', desc: 'Buy 5 items from the Shop', bones: 100, check: s => s.shopBuys >= 5 },
         { id: 'gifts_7', name: 'Daily Treat', desc: 'Claim the daily reward 7 times', bones: 120, check: s => s.dailyClaims >= 7 }
     ];
 
@@ -357,10 +368,10 @@ const BADGE_CATEGORIES = [
     { id: 'season', label: 'Season badges', blurb: 'Earned by playing a Paw Pass season. They never go away, even after the season ends.' }
 ];
 const BADGES = [
-    { id: 'season_s1', cat: 'season', name: 'Season 1: Backyard Bash', desc: 'Played the very first Paw Pass season.', how: 'Earn Paw Pass XP during Season 1: Backyard Bash.' }
+    { id: 'season_s0', cat: 'season', name: 'Season 0: Backyard Bash', desc: 'Played the pre-season, Season 0.', how: 'Earn Paw Pass XP during Season 0: Backyard Bash.' }
 ];
 const BADGE_ART = {
-    season_s1: `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#ffb300" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+    season_s0: `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#ffb300" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
     <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5" fill="#ffd54f"/>
     <g fill="#fff" stroke="#2b2b2b" stroke-width="1.7" stroke-linejoin="round">
       <rect x="15" y="40.5" width="36" height="3" rx="1"/><rect x="15" y="46" width="36" height="3" rx="1"/>
@@ -370,3 +381,350 @@ const BADGE_ART = {
     <rect x="22" y="24.6" width="20" height="5.3" fill="#fffdf2"/><circle cx="21.5" cy="24" r="2.4" fill="#fffdf2"/><circle cx="21.5" cy="30.5" r="2.4" fill="#fffdf2"/><circle cx="42.5" cy="24" r="2.4" fill="#fffdf2"/><circle cx="42.5" cy="30.5" r="2.4" fill="#fffdf2"/></g>
     <path d="M50 17 l1.3 3 3 1.3 -3 1.3 -1.3 3 -1.3 -3 -3 -1.3 3 -1.3z" fill="#fff" stroke="#2b2b2b" stroke-width="1.4" stroke-linejoin="round"/>`
 };
+
+
+/* =========================================================
+   XP TOKENS (boosts). Players collect them (Paw Pass, codes) and activate them on the Boosts tab.
+========================================================= */
+const BOOST_MINUTES = 30;                       // how long one token lasts (using another one adds more time)
+const TOKENS = {
+    xp2: { name: '2x XP Token', short: '2x XP', icon: '⚡', desc: 'Doubles the XP you earn from rounds.', color: '#5a82ff' },
+    bones2: { name: '2x Bones Token', short: '2x Bones', icon: '🦴', desc: 'Doubles the bones you earn from rounds.', color: '#ffb300' },
+    pass2: { name: '2x Pass XP Token', short: '2x Pass XP', icon: '🎟️', desc: 'Doubles the Paw Pass XP you earn.', color: '#b36bff' }
+};
+// Paw Pass tiers that give a token instead of bones (Season 0). Tiers with a cosmetic reward are never replaced.
+const TOKEN_TIERS = { 2: 'xp2', 4: 'bones2', 6: 'pass2', 9: 'xp2', 11: 'bones2', 13: 'pass2', 16: 'xp2', 18: 'bones2', 20: 'pass2', 23: 'xp2' };   // 10 boost levels; the other 15 levels give bones
+
+/* =========================================================
+   REDEEM CODES
+   Codes are typed in the Boosts tab. They are NOT case sensitive, and each can be used once per player.
+   The code itself is stored as a scrambled string (so it is not sitting there in plain text); `id` is a
+   private name that we save on the player so we always know which codes they used.
+   To remove a code later, delete its line here. Items players already got stay theirs.
+   To add one: run  cyrb53('YOURCODE')  (see hash.js notes in the chat) and add a line.
+   Rewards:  tokens: { xp2: 3 }   and/or   items: [{ cat: 'hat', id: 'pinkcrown' }]
+========================================================= */
+const CODES = {
+    '15v763i7rh9': { id: 'tokens_xp', tokens: { xp2: 3 } },
+    '1769x6njqq': { id: 'tokens_bones', tokens: { bones2: 3 } },
+    '9ivpbuzvol': { id: 'exclusive_1', items: [{ cat: 'breed', id: 'mutt' }, { cat: 'neck', id: 'collar_babypink' }, { cat: 'hat', id: 'pinkcrown' }] }
+};
+
+/* =========================================================
+   WEEKLY QUESTS: harder and longer than daily ones. 3 per week (distinct types), reset Monday 7:00 AM.
+   Finishing all three gives a bonus token.
+========================================================= */
+const WEEKLY_POOL = [
+    { type: 'rounds', target: 15, text: 'Finish 15 rounds', bones: 180, pxp: 250 },
+    { type: 'rounds', target: 25, text: 'Finish 25 rounds', bones: 280, pxp: 380 },
+    { type: 'chars', target: 4000, text: 'Type 4,000 correct letters', bones: 200, pxp: 280 },
+    { type: 'chars', target: 8000, text: 'Type 8,000 correct letters', bones: 300, pxp: 400 },
+    { type: 'perfect', target: 5, text: 'Finish 5 rounds with ZERO mistakes', bones: 240, pxp: 320 },
+    { type: 'wpm', target: 60, text: 'Reach 60 WPM in a round', bones: 200, pxp: 280 },
+    { type: 'wpm', target: 80, text: 'Reach 80 WPM in a round', bones: 300, pxp: 400 },
+    { type: 'streak', target: 150, text: 'Type 150 letters in a row with no mistakes', bones: 220, pxp: 300 },
+    { type: 'tough', target: 8, text: 'Finish 8 Medium, Hard or Expert rounds', bones: 240, pxp: 320 },
+    { type: 'combo', target: 25, text: 'Get a combo of 25 perfect words', bones: 220, pxp: 300 }
+];
+const WEEKLY_BONUS_TOKEN = 'xp2';
+
+/* =========================================================
+   RARITY. Every cosmetic has one. It is worked out below (from how you get it) unless an item sets
+   its own `rarity`. Shop prices come from the rarity, so rarer = pricier.
+   NOTE: Common is grey, Uncommon is green. Swap the colours here if you prefer the other way round.
+========================================================= */
+const RARITIES = {
+    common: { name: 'Common', color: '#9aa4b2', rank: 0, price: 75 },
+    uncommon: { name: 'Uncommon', color: '#3ec46d', rank: 1, price: 150 },
+    rare: { name: 'Rare', color: '#3d8bff', rank: 2, price: 300 },
+    epic: { name: 'Epic', color: '#a05cff', rank: 3, price: 600 },
+    legendary: { name: 'Legendary', color: '#ff9d1c', rank: 4, price: 1200 },
+    mythic: { name: 'Mythic', color: '#19d3e3', rank: 5, price: 2500 },   // only the Labrador
+    special: { name: 'Special', color: '#ff4fa3', rank: 6, price: 800 }   // limited-time event items
+};
+
+/* =========================================================
+   EVENTS. Event cosmetics can ONLY be bought in the Shop while their event is on.
+   start / end are [month, day]; the event runs from 12:00 AM on `start` to 11:59 PM on `end`, every year.
+   Players keep event items forever once they have them.
+========================================================= */
+const EVENTS = [
+    { id: 'halloween', name: 'Halloween Shop', icon: '🎃', start: [10, 17], end: [11, 2], colors: ['#ff7a1a', '#5b2a6e'], blurb: 'Spooky treats and costumes. Gone after Nov 2!' },
+    { id: 'christmas', name: 'Christmas Shop', icon: '🎄', start: [11, 28], end: [12, 31], colors: ['#d32f2f', '#1b6b3a'], blurb: 'Cozy winter gear and holiday cheer. Leaves Dec 31!' },
+    { id: 'valentines', name: "Valentine's Shop", icon: '💝', start: [2, 7], end: [2, 16], colors: ['#ff4f8b', '#b01e5a'], blurb: 'Hearts, hearts and more hearts.' },
+    { id: 'spring', name: 'Spring Bloom Shop', icon: '🌷', start: [3, 20], end: [4, 20], colors: ['#f48fb1', '#66bb6a'], blurb: 'Flowers, bunnies and blossoms.' }
+];
+// which cosmetics belong to which event (category: [ids]). These are removed from the normal Shop and Wardrobe unlocks.
+const EVENT_ITEMS = {
+    halloween: { hat: ['witch'], coat: ['ghost'], scene: ['spooky'] },
+    christmas: { hat: ['santa', 'antlers', 'elf'], neck: ['snowflake', 'ribbon', 'candycane', 'holly'], trail: ['snow'], coat: ['candycane', 'evergreen'], treat: ['gingerbread', 'cocoa'] },
+    valentines: { face: ['hearts'], trail: ['hearts'], coat: ['strawberry'] },
+    spring: { hat: ['bunny', 'flower'], neck: ['daisies'], trail: ['petals'], scene: ['sakura'] }
+};
+
+/* CHRISTMAS DROP SCHEDULE: Christmas cosmetics are hidden (wardrobe + Christmas Shop) until their drop day.
+   Each one appears at 12:00 AM Mountain Time on its day [month, day] and stays for the rest of the event.
+   An item with NO entry here never appears. Move dates around freely or add new Christmas items here. */
+const CHRISTMAS_DROPS = {
+    'hat:santa': [11, 28],
+    'neck:snowflake': [11, 28],
+    'trail:snow': [12, 3],
+    'hat:antlers': [12, 6],
+    'neck:candycane': [12, 9],
+    'coat:candycane': [12, 12],
+    'treat:cocoa': [12, 15],
+    'hat:elf': [12, 18],
+    'neck:holly': [12, 21],
+    'coat:evergreen': [12, 24],
+    'treat:gingerbread': [12, 26],
+    'neck:ribbon': [12, 28]
+};
+
+/* New Christmas cosmetics (the art for hats/necks lives in art.js) */
+(() => {
+    const C = window.PT_DATA.CATALOG;
+    C.hat.push({ id: 'elf', name: 'Elf Hat', icon: '🧝', src: { type: 'event' } });
+    C.neck.push({ id: 'candycane', name: 'Candy Cane Scarf', icon: '🍭', src: { type: 'event' } },
+        { id: 'holly', name: 'Holly Collar', icon: '🌿', src: { type: 'event' } });
+    C.coat.push({ id: 'candycane', name: 'Candy Cane', fur: '#fafafa', dark: '#dcdcdc', light: '#ffffff', pattern: 'stripes', patColor: '#e53935', src: { type: 'event' } },
+        { id: 'evergreen', name: 'Evergreen', fur: '#2e8b57', dark: '#1f6b41', light: '#8fdcae', src: { type: 'event' } });
+    C.treat.push({ id: 'gingerbread', name: 'Gingerbread', icon: '🍪', src: { type: 'event' } },
+        { id: 'cocoa', name: 'Hot Cocoa', icon: '☕', src: { type: 'event' } });
+
+    // tag event items, then give everything a rarity
+    Object.keys(EVENT_ITEMS).forEach(ev => Object.keys(EVENT_ITEMS[ev]).forEach(cat => EVENT_ITEMS[ev][cat].forEach(id => {
+        const it = C[cat].find(i => i.id === id);
+        if (it) { it.event = ev; it.src = { type: 'event', event: ev }; if (ev === 'christmas') it.drop = CHRISTMAS_DROPS[cat + ':' + id] || null; }
+    })));
+    const OVERRIDE = { mutt: 'legendary', pinkcrown: 'legendary', collar_babypink: 'epic', gold: 'legendary', neon: 'legendary', galaxy: 'epic', rainbow: 'epic', lava: 'epic', ocean: 'epic' };
+    const auto = it => {
+        const s = it.src;
+        if (it.event) return 'special';
+        if (s.type === 'free') return 'common';
+        if (s.type === 'level') return s.level <= 5 ? 'common' : s.level <= 9 ? 'uncommon' : s.level <= 14 ? 'rare' : s.level <= 19 ? 'epic' : 'legendary';
+        if (s.type === 'pass') return s.tier <= 10 ? 'uncommon' : s.tier <= 20 ? 'rare' : s.tier <= 29 ? 'epic' : 'legendary';
+        if (s.type === 'ach') return 'epic';
+        if (s.type === 'bones') return s.cost <= 100 ? 'common' : s.cost <= 160 ? 'uncommon' : s.cost <= 220 ? 'rare' : s.cost <= 300 ? 'epic' : 'legendary';
+        return 'epic';
+    };
+    Object.keys(C).forEach(cat => C[cat].forEach(it => { it.rarity = it.rarity || OVERRIDE[it.id] || auto(it); }));
+    // Season 0 has NO cosmetics on the Paw Pass: former pass items are sold in the Pup Shop instead
+    Object.keys(C).forEach(cat => C[cat].forEach(it => { if (it.src.type === 'pass') { it.formerPass = it.src.tier; it.src = { type: 'bones', cost: 0 }; } }));
+})();
+
+// Shop price from rarity (the same item always costs the same)
+function shopPrice(it) {
+    return (RARITIES[it.rarity] || RARITIES.common).price;
+}
+
+/* =========================================================
+   TOKEN ART: same badge style as the profile badges
+========================================================= */
+const TOKEN_ART = {
+    xp2: `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#4c74f0" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5" fill="#7d9bff"/>
+    <polygon points="36,10 21,31 30,31 26,45 43,23 34,23" fill="#ffe14a" stroke="#2b2b2b" stroke-width="2.4" stroke-linejoin="round"/>`,
+    bones2: `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#f0a000" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5" fill="#ffd54f"/>
+    <g transform="rotate(-40 32 28)" stroke="#2b2b2b" stroke-width="2.2" fill="#fffdf2"><circle cx="19" cy="23" r="4.4"/><circle cx="19" cy="33" r="4.4"/><circle cx="45" cy="23" r="4.4"/><circle cx="45" cy="33" r="4.4"/><rect x="19" y="22" width="26" height="12" rx="4"/></g>
+    <g transform="rotate(-40 32 28)" fill="#fffdf2"><rect x="19.5" y="23.3" width="25" height="9.4"/><circle cx="19" cy="23" r="3.2"/><circle cx="19" cy="33" r="3.2"/><circle cx="45" cy="23" r="3.2"/><circle cx="45" cy="33" r="3.2"/></g>`,
+    pass2: `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#9a4fe0" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5" fill="#c08cff"/>
+    <path d="M15 21 H49 V28 a4 4 0 0 0 0 8 V43 H15 V36 a4 4 0 0 0 0 -8 Z" fill="#fff3c4" stroke="#2b2b2b" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M32 25 l2.6 5.2 5.8 .8 -4.2 4 1 5.7 -5.2 -2.8 -5.2 2.8 1 -5.7 -4.2 -4 5.8 -.8z" fill="#ff9d1c" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round"/>`
+};
+const TOKEN_X2 = '<g><rect x="39" y="38" width="22" height="14" rx="7" fill="#2b2b2b"/><text x="50" y="49" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="11" fill="#fff">2x</text></g>';
+
+/* =========================================================
+   TOPIC PACKS: pick what you type about (keeps long sessions fresh)
+   unlock = Pup level needed. "mixed" uses the normal random sentences.
+========================================================= */
+const TOPICS = {
+    mixed: { name: 'Mixed', icon: '🎲', unlock: 1 },
+    animals: { name: 'Animals', icon: '🐾', unlock: 1 },
+    food: { name: 'Snacks', icon: '🍪', unlock: 3 },
+    space: { name: 'Space', icon: '🚀', unlock: 5 },
+    facts: { name: 'Fun Facts', icon: '💡', unlock: 7 },
+    twisters: { name: 'Tongue Twisters', icon: '🌀', unlock: 10 },
+    proverbs: { name: 'Proverbs', icon: '📜', unlock: 12 },
+    code: { name: 'Code & Symbols', icon: '💻', unlock: 15 }
+};
+const TOPIC_TEXT = {
+    animals: [
+        'A cat can jump up to six times its own length.',
+        'Dolphins sleep with one half of their brain at a time.',
+        'The quick red fox leaps over the sleepy hound.',
+        'Penguins slide on their bellies to move across the ice.',
+        'An octopus has three hearts and blue blood.',
+        'Owls can turn their heads almost all the way around.',
+        'A group of crows is called a murder.',
+        'Elephants can recognize themselves in a mirror.',
+        'Sea otters hold hands while they sleep so they do not drift apart.',
+        'Hummingbirds are the only birds that can fly backwards.',
+        'A snail can sleep for up to three years.',
+        'Kangaroos cannot walk backwards very easily.',
+        'Wolves howl to talk to the other members of their pack.',
+        'Honey bees dance to show friends where the flowers are.',
+        'A giraffe has the same number of neck bones as a human.',
+        'Puppies are born deaf and cannot see for the first two weeks.'
+    ],
+    food: [
+        'Warm chocolate chip cookies make every afternoon better.',
+        'Pancakes with maple syrup are the best breakfast.',
+        'Crunchy apples and creamy peanut butter make a great snack.',
+        'Pizza with extra cheese is worth the wait.',
+        'Fresh strawberries taste sweet in the summer sun.',
+        'A bowl of hot tomato soup and a grilled cheese sandwich.',
+        'Spaghetti twirls around the fork with a little parmesan on top.',
+        'Honey is the only food that never really goes bad.',
+        'Popcorn pops when the water inside gets very hot.',
+        'Fluffy waffles, whipped cream and juicy blueberries.',
+        'Dad flips burgers on the grill while the corn gets golden.',
+        'Cinnamon rolls smell amazing when they come out of the oven.',
+        'Carrots, celery and cucumbers are crisp and fresh.',
+        'Ice cream melts quickly on a hot afternoon, so eat fast!',
+        'A juicy peach drips down your chin on a lazy Sunday.'
+    ],
+    space: [
+        'The sun is a star, and it is nearly four and a half billion years old.',
+        'A day on Venus is longer than a year on Venus.',
+        'Saturn has rings made of ice and rock.',
+        'Astronauts float because they are always falling around the Earth.',
+        'Light from the sun takes eight minutes to reach us.',
+        'There are more stars in the sky than grains of sand on Earth.',
+        'Mars is red because of rust in its soil.',
+        'The moon is slowly drifting away from our planet.',
+        'A rocket needs to reach about 28,000 kilometers per hour to orbit.',
+        'Jupiter has dozens of moons and a storm that is bigger than Earth.',
+        'Space is completely silent because there is no air.',
+        'A comet grows a glowing tail when it flies near the sun.',
+        'Neutron stars are so dense that a spoonful would weigh a mountain.',
+        'The International Space Station circles Earth every ninety minutes.',
+        'Black holes bend light with their strong gravity.'
+    ],
+    facts: [
+        'Bananas are berries, but strawberries are not.',
+        'The Eiffel Tower grows taller in summer because metal expands in heat.',
+        'Lightning is five times hotter than the surface of the sun.',
+        'Your nose can remember about fifty thousand different smells.',
+        'The shortest war in history lasted less than an hour.',
+        'Water can boil and freeze at the same time in a special vacuum.',
+        'A bolt of lightning can toast bread in a flash.',
+        'Most of the dust in your home is actually dead skin.',
+        'The human heart beats about one hundred thousand times a day.',
+        'There is enough gold in the ocean to give everyone a few pounds.',
+        'Sharks are older than trees.',
+        'The first computer mouse was made of wood.',
+        'Rainbows are really full circles, but the ground hides the rest.',
+        'Octopus arms can taste what they touch.',
+        'Honey from ancient tombs is still safe to eat.'
+    ],
+    twisters: [
+        'She sells seashells by the seashore.',
+        'Peter Piper picked a peck of pickled peppers.',
+        'How much wood would a woodchuck chuck if a woodchuck could chuck wood?',
+        'Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair.',
+        'Red lorry, yellow lorry, red lorry, yellow lorry.',
+        'Betty Botter bought some butter, but she said the butter is bitter.',
+        'I scream, you scream, we all scream for ice cream.',
+        'A big black bug bit a big black bear.',
+        'Six slippery snails slid slowly seaward.',
+        'Unique New York, you know you need unique New York.',
+        'Freshly fried flying fish, freshly fried flesh.',
+        'Brisk brave brigadiers brandished broad bright blades.',
+        'The thirty-three thieves thought that they thrilled the throne.',
+        'Which witch switched the Swiss wristwatches?',
+        'Four fine fresh fish for you.'
+    ],
+    proverbs: [
+        'A journey of a thousand miles begins with a single step.',
+        'Actions speak louder than words.',
+        'Every cloud has a silver lining.',
+        'The early bird catches the worm, but the second mouse gets the cheese.',
+        'Do not count your chickens before they hatch.',
+        'A stitch in time saves nine.',
+        'Practice makes progress, not perfect, but it sure helps.',
+        'Better late than never.',
+        'You cannot judge a book by its cover.',
+        'Where there is a will, there is a way.',
+        'Look before you leap, but do not forget to leap.',
+        'Many hands make light work.',
+        'A rolling stone gathers no moss.',
+        'Slow and steady wins the race.',
+        'When the going gets tough, the tough get going.'
+    ],
+    code: [
+        'const dog = "good"; console.log(dog);',
+        'if (score >= 100) { bones += 5; }',
+        'for (let i = 0; i < 10; i++) { run(); }',
+        'function fetch(ball) { return ball + 1; }',
+        'let name = "Biscuit"; // best pup ever',
+        'array.map(x => x * 2).filter(x => x > 5);',
+        'print("Hello, world!") # classic first program',
+        '<div class="dog">Woof!</div>',
+        'user@example.com, 555-0199, #1 @ $9.99',
+        'while (true) { typeFast(); }',
+        'SELECT name FROM dogs WHERE good = 1;',
+        'git commit -m "Add more treats"',
+        'x = (a + b) * (c - d) / 2;',
+        'return [1, 2, 3].reverse();',
+        '{"name": "Biscuit", "level": 42}'
+    ]
+};
+
+/* =========================================================
+   TWISTS: optional rule changes that make a round feel different (bigger rewards)
+========================================================= */
+const TWISTS = {
+    fog: { name: 'Fog', icon: '🌫️', mult: 1.25, desc: 'Only the word you are typing is clear.' },
+    ghost: { name: 'Ghost Ink', icon: '👻', mult: 1.4, desc: 'Letters vanish as soon as you type them right.' },
+    nomercy: { name: 'No Mercy', icon: '💀', mult: 1.8, desc: 'A single mistake restarts the sentence.' },
+    goldrush: { name: 'Gold Rush', icon: '🌟', mult: 1.2, desc: 'Tons of golden words. Each one is worth extra bones.' }
+};
+const TWIST_IDS = Object.keys(TWISTS);
+
+/* =========================================================
+   MORE BADGES (earned automatically; they never go away)
+========================================================= */
+const GLYPH = {
+    bolt: '<polygon points="36,12 20,34 30,34 26,52 44,28 34,28" />',
+    flame: '<path d="M32 12 C38 22 46 26 44 38 C43 46 37 52 32 52 C26 52 20 46 20 38 C20 32 24 30 25 26 C28 29 29 31 31 31 C30 24 30 18 32 12 Z"/>',
+    star: '<path d="M32 12 l5.6 11.6 12.4 1.6 -9.2 8.6 2.4 12.4 -11.2 -6.2 -11.2 6.2 2.4 -12.4 -9.2 -8.6 12.4 -1.6z"/>',
+    paw: '<ellipse cx="22" cy="28" rx="4" ry="5"/><ellipse cx="30" cy="21" rx="4" ry="5"/><ellipse cx="38" cy="21" rx="4" ry="5"/><ellipse cx="45" cy="28" rx="4" ry="5"/><path d="M32 31 c7 0 12 7 12 12 c0 4 -4 6 -7 6 c-2 0 -3 -1 -5 -1 s-3 1 -5 1 c-3 0 -7 -2 -7 -6 c0 -5 5 -12 12 -12z"/>',
+    target: '<circle cx="32" cy="32" r="17" fill="none" stroke-width="5"/><circle cx="32" cy="32" r="8" fill="none" stroke-width="5"/><circle cx="32" cy="32" r="2.5"/>',
+    clock: '<circle cx="32" cy="32" r="18" fill="none" stroke-width="5"/><path d="M32 21 V33 L40 38" fill="none" stroke-width="5" stroke-linecap="round"/>',
+    crown: '<path d="M14 44 L12 22 L24 32 L32 16 L40 32 L52 22 L50 44 Z"/>',
+    heart: '<path d="M32 50 C14 38 14 22 24 20 C28 19 31 22 32 25 C33 22 36 19 40 20 C50 22 50 38 32 50Z"/>',
+    trophy: '<path d="M20 14 H44 V26 C44 34 38 38 32 38 C26 38 20 34 20 26 Z"/><rect x="29" y="38" width="6" height="8"/><rect x="22" y="46" width="20" height="5" rx="2"/><path d="M20 18 H12 V22 C12 28 16 30 20 30 M44 18 H52 V22 C52 28 48 30 44 30" fill="none" stroke-width="4"/>',
+    bag: '<path d="M18 24 H46 L49 50 H15 Z"/><path d="M25 24 V20 C25 15 39 15 39 20 V24" fill="none" stroke-width="4"/>',
+    book: '<path d="M14 18 H30 C32 18 32 20 32 20 V50 C32 50 30 46 26 46 H14 Z M50 18 H34 C32 18 32 20 32 20 V50 C32 50 34 46 38 46 H50 Z"/>',
+    bone: '<g transform="rotate(-40 32 32)"><rect x="18" y="28" width="28" height="8"/><circle cx="18" cy="27" r="5"/><circle cx="18" cy="37" r="5"/><circle cx="46" cy="27" r="5"/><circle cx="46" cy="37" r="5"/></g>',
+    gift: '<rect x="14" y="26" width="36" height="24" rx="2"/><rect x="12" y="20" width="40" height="9" rx="2"/><path d="M32 20 V50" stroke-width="5" fill="none"/><path d="M32 20 C26 10 18 14 24 20 M32 20 C38 10 46 14 40 20" fill="none" stroke-width="4"/>',
+    skull: '<path d="M32 12 C20 12 15 21 16 29 C17 34 21 35 21 40 V46 H43 V40 C43 35 47 34 48 29 C49 21 44 12 32 12Z"/><circle cx="25" cy="30" r="4" fill="#2b2b2b"/><circle cx="39" cy="30" r="4" fill="#2b2b2b"/>',
+    wind: '<path d="M12 26 H38 C46 26 46 16 38 16 M12 36 H46 C54 36 54 46 46 46 H30" fill="none" stroke-width="5" stroke-linecap="round"/>',
+    check: '<path d="M16 34 L28 46 L50 20" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>',
+    moon: '<path d="M40 14 C28 16 22 26 25 36 C28 46 40 50 48 44 C36 44 30 32 36 22 C37 19 38 16 40 14Z"/>',
+    cal: '<rect x="14" y="18" width="36" height="32" rx="4"/><rect x="14" y="18" width="36" height="9" fill="#2b2b2b"/><circle cx="24" cy="38" r="3" fill="#2b2b2b"/><circle cx="32" cy="38" r="3" fill="#2b2b2b"/><circle cx="40" cy="38" r="3" fill="#2b2b2b"/>'
+};
+function makeBadgeArt(base, light, glyph) {
+    return `<polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="${base}" stroke="#2b2b2b" stroke-width="3.5" stroke-linejoin="round"/>
+    <polygon points="32,9 52,20.5 52,43.5 32,55 12,43.5 12,20.5" fill="${light}"/>
+    <g fill="#fffdf2" stroke="#2b2b2b" stroke-width="2.4" stroke-linejoin="round">${GLYPH[glyph]}</g>`;
+}
+BADGE_CATEGORIES.push(
+    { id: 'skill', label: 'Skill', blurb: '' },
+    { id: 'play', label: 'Dedication', blurb: '' }
+);
+(function addBadges() {
+    const B = (id, cat, name, desc, glyph, base, light, check) => {
+        BADGES.push({ id, cat, name, desc, how: desc, check });
+        BADGE_ART[id] = makeBadgeArt(base, light, glyph);
+    };
+    // speed
+    // skill
+    B('perfect_1', 'skill', 'Clean Run', 'Finish a round with 0 mistakes.', 'check', '#3ec46d', '#8fe3a8', s => s.perfects >= 1);
+    // dedication
+    B('rounds_10', 'play', 'Getting Started', 'Finish 10 rounds.', 'paw', '#3d8bff', '#8fbaff', s => s.games >= 10);
+    // modes
+    // collection
+})();

@@ -23,7 +23,9 @@
         </div>
         <div class="topbar-right">
             <span class="chip bones-chip" id="bonesChip" title="Bones: spend them in the Wardrobe">🦴 0</span>
-            <span class="chip level-chip" id="levelChip" title="Your level">Lv 1</span>
+            <div class="lvl-box career" tabindex="0" data-tip="Career level = all your Season levels added together, forever. Example: Season level 10 in 3 different seasons = Career level 30."><small>Career level</small><b id="levelChip" class="lvl-num">1</b></div>
+            <div class="lvl-box season" tabindex="0" data-tip="Season level = your Paw Pass progress this season (max 25 this season). It starts over each new season, but every level you earn is added to your Career level."><small>Season level</small><b id="seasonChip" class="lvl-num">0</b></div>
+            <button id="settingsBtn" class="icon-btn gear-btn" data-act="tab" data-tab="settings" aria-label="Settings" title="Settings">⚙️</button>
             <button id="themeBtn" class="icon-btn" aria-label="Switch between light and dark theme" title="Light / dark">🌙</button>
             <button id="muteBtn" class="icon-btn" aria-label="Toggle sound" title="Sound">🔊</button>
             <div class="acct-wrap hidden" id="acctWrap"><button id="acctBtn" class="acct-btn" type="button"></button><div id="acctMenu" class="acct-menu hidden" role="menu"></div></div>
@@ -32,74 +34,63 @@
 
     <nav id="nav" class="nav" aria-label="Main">
         <i class="nav-ind" aria-hidden="true"></i>
+        <button data-act="tab" data-tab="news" class="nav-news" data-tip="News" aria-label="News"><span class="ni">📰</span></button>
         <button data-act="tab" data-tab="play" class="active"><span class="ni">🎮</span><span class="nl">Play</span></button>
         <button data-act="tab" data-tab="wardrobe"><span class="ni">👕</span><span class="nl">Wardrobe</span></button>
+        <button data-act="tab" data-tab="shop"><span class="ni">🛍️</span><span class="nl">Shop</span></button>
         <button data-act="tab" data-tab="pass"><span class="ni">🎟️</span><span class="nl">Paw Pass</span><i id="dotPass" class="dot hidden"></i></button>
+        <button data-act="tab" data-tab="boosts"><span class="ni">⚡</span><span class="nl">Boosts</span></button>
         <button data-act="tab" data-tab="quests"><span class="ni">📜</span><span class="nl">Quests</span><i id="dotQuests" class="dot hidden"></i></button>
         <button data-act="tab" data-tab="stats"><span class="ni">📊</span><span class="nl">Stats</span></button>
-        <button data-act="tab" data-tab="settings"><span class="ni">⚙️</span><span class="nl">Settings</span></button>
     </nav>
+    <div id="boostBar" class="boost-bar hidden"></div>
 
     <main>
 
         <!-- ================= PLAY ================= -->
         <section id="tab-play" class="tab">
-
-            <div class="hero">
-                <div class="hero-copy">
-                    <h2 class="hero-title">Type fast.<br>Your pup runs faster.</h2>
-                    <p class="hero-sub">Type each sentence you see. The quicker and cleaner you type, the faster your dog runs.</p>
-                    <ol class="steps">
-                        <li><span class="sn">1</span><span><b>Type</b> the sentence</span></li>
-                        <li><span class="sn">2</span><span><b>Watch</b> your pup run</span></li>
-                        <li><span class="sn">3</span><span><b>Win</b> a treat and XP</span></li>
-                    </ol>
-                    <div class="cta-row">
-                        <button id="startBtn" class="play-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor" /></svg><span>Play</span></button>
-                        <span class="cta-note" id="ctaNote">Classic · Easy · 5 sentences</span>
-                    </div>
-                </div>
-
-                <div class="hero-visual">
+            <div id="newsBox" class="news-box" role="button" tabindex="0" data-act="openNews" aria-label="Open the news"></div>
+            <div class="lobby">
+                <div class="lobby-stage">
                     <div id="playPreview" class="preview-stage live"></div>
                     <div class="dog-badge"><strong id="playDogName">Biscuit</strong><span id="menuTitle">Tiny Pup</span></div>
                 </div>
-            </div>
 
-            <div class="dash">
-                <div class="card setup">
-                    <h3>Round setup</h3>
-                    <div class="field"><span class="field-label">Mode</span><div id="segMode" class="seg" role="group" aria-label="Mode"></div></div>
-                    <div class="field"><span class="field-label">Difficulty</span><div id="segDiff" class="seg wrap" role="group" aria-label="Difficulty"></div></div>
-                    <p class="field-hint" id="diffHint"></p>
-                    <div class="field" id="lenField"><span class="field-label">Sentences</span><div id="segCount" class="seg" role="group" aria-label="Sentences per round"></div></div>
+                <div class="lobby-main">
+                    <h2 class="hero-title">Type fast.<br>Your pup runs faster.</h2>
+
+                    <div class="lobby-level">
+                        <div class="ring" id="levelRing" style="--p:0"><span id="menuLevel">1</span><small>pup lvl</small></div>
+                        <div class="level-info">
+                            <div class="xpbar"><div id="menuXpFill" class="xpfill"></div></div>
+                            <div class="xp-text" id="menuXpText">0 / 100 XP</div>
+                        </div>
+                    </div>
+
+                    <div class="cta-row">
+                        <button id="startBtn" class="play-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor" /></svg><span>Play</span></button>
+                        <button id="raceBtn" class="race-btn" data-act="openRace" title="Race your friends in a private room"><span aria-hidden="true">👥</span> Race friends</button>
+                    </div>
+                    <div class="mode-line">
+                        <span class="cta-note" id="ctaNote">Classic · Easy · 5 sentences</span>
+                        <button type="button" class="mode-btn" id="setupBtn" data-act="toggleSetup" aria-expanded="false" aria-controls="setupPanel">Game modes ▾</button>
+                    </div>
+
+                    <div id="setupPanel" class="setup hidden">
+                        <div class="field"><span class="field-label">Mode</span><div id="segMode" class="seg wrap" role="group" aria-label="Mode"></div></div>
+                        <div class="field" id="topicField"><span class="field-label">Topic</span><div id="segTopic" class="seg wrap" role="group" aria-label="Topic"></div></div>
+                        <div class="field" id="twistField"><span class="field-label">Twist</span><div id="segTwist" class="seg" role="group" aria-label="Twist"></div></div>
+                        <div class="field"><span class="field-label">Difficulty</span><div id="segDiff" class="seg wrap" role="group" aria-label="Difficulty"></div></div>
+                        <p class="field-hint" id="diffHint"></p>
+                        <div class="field" id="lenField"><span class="field-label">Sentences</span><div id="segCount" class="seg" role="group" aria-label="Sentences per round"></div></div>
+                    </div>
                     <div class="sr-only">
                         <select id="modeSelect" tabindex="-1"><option value="classic">Classic</option><option value="timeattack">Time Attack</option></select>
                         <select id="difficultySelect" tabindex="-1"></select>
                         <select id="countSelect" tabindex="-1"><option value="3">3</option><option value="5">5</option><option value="10">10</option></select>
                     </div>
-                </div>
 
-                <div class="card level-card">
-                    <h3>Your pup</h3>
-                    <div class="level-wrap">
-                        <div class="ring" id="levelRing" style="--p:0"><span id="menuLevel">1</span><small>level</small></div>
-                        <div class="level-info">
-                            <div class="xpbar"><div id="menuXpFill" class="xpfill"></div></div>
-                            <div class="xp-text" id="menuXpText">0 / 100 XP</div>
-                            <p class="level-hint">Earn XP by typing accurately. Fewer mistakes means more XP.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card today-card">
-                    <h3>Today</h3>
-                    <div id="todayBody" class="today-body"></div>
-                    <div class="today-links">
-                        <button class="chip-btn" data-act="tab" data-tab="quests" id="qlQuests">📜 Quests</button>
-                        <button class="chip-btn" data-act="tab" data-tab="pass" id="qlPass">🎟️ Paw Pass</button>
-                        <button class="chip-btn" data-act="tab" data-tab="wardrobe">👕 Dress up</button>
-                    </div>
+                    <div id="todayBody" class="today-strip"></div>
                 </div>
             </div>
         </section>
@@ -111,11 +102,31 @@
                     <div id="wardPreview" class="preview-stage tall"></div>
                 </div>
                 <div class="card">
-                    <button id="mysteryBtn" class="mystery" data-act="mystery">🎁 Mystery Box <small>150 🦴 · a random Bones item</small></button>
                     <div id="catPills" class="pills"></div>
                     <div id="itemGrid" class="item-grid"></div>
                 </div>
             </div>
+        </section>
+
+        <!-- ================= NEWS ================= -->
+        <section id="tab-news" class="tab hidden">
+            <div class="shop-title"><h1>WHAT'S NEW</h1></div>
+            <div class="news-layout">
+                <div id="newsHero" class="news-hero"></div>
+                <div id="newsList" class="news-list" role="tablist" aria-label="News stories"></div>
+            </div>
+        </section>
+
+        <!-- ================= SHOP ================= -->
+        <section id="tab-shop" class="tab hidden">
+            <div class="shop-title"><span class="st-paw">🐾</span><h1>PUP SHOP</h1><span class="st-paw">🐾</span></div>
+            <div id="shopEvents"></div>
+            <div class="shop-sec">
+                <div class="shop-bar"><h2>Daily</h2><span id="shopTimer" class="timer-chip"></span></div>
+                <div id="shopGrid" class="shop-grid"></div>
+            </div>
+            <div id="shopSoon"></div>
+            <div class="shop-redeem"><div><b>🎁 Have a code?</b><small>Redeem it for free rewards.</small></div><button class="big-btn" data-act="openRedeem">Redeem a code</button></div>
         </section>
 
         <!-- ================= PAW PASS ================= -->
@@ -123,13 +134,13 @@
             <div class="card">
                 <div class="pass-head">
                     <div>
-                        <h2>🎟️ Paw Pass: Season 1 "Backyard Bash"</h2>
-                        <p class="muted">Every round earns Pass XP. Reach each tier, then claim your reward!</p>
+                        <h2>🎟️ Paw Pass: Season 0 "Backyard Bash"</h2>
+                        <p class="muted">Every round earns Pass XP. Season 0 is the pre-season: 25 levels with 15 bone rewards and 10 XP boost rewards. Hit level 25 to set yourself on fire!</p>
                     </div>
                     <button id="claimAllBtn" class="small-btn" data-act="claimAllPass">Claim all</button>
                 </div>
                 <div class="pass-progress">
-                    <div class="pass-tier-label" id="passTierLabel">Tier 0 / 30</div>
+                    <div class="pass-tier-label" id="passTierLabel">Season Level 0 / 25</div>
                     <div class="xpbar"><div id="passFill" class="xpfill"></div></div>
                     <div class="xp-text" id="passXpText"></div>
                 </div>
@@ -138,6 +149,18 @@
         </section>
 
         <!-- ================= QUESTS ================= -->
+        <!-- ================= BOOSTS ================= -->
+        <section id="tab-boosts" class="tab hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>⚡ Boosts</h2>
+                    <p class="muted">Tokens boost what you earn for a while. Find them on the Paw Pass and by redeeming codes in Settings.</p>
+                    <div id="activeBoosts"></div>
+                    <div id="tokenGrid" class="token-grid"></div>
+                </div>
+            </div>
+        </section>
+
         <section id="tab-quests" class="tab hidden">
             <div class="card reward-card">
                 <div id="rewardText" class="reward-text"></div>
@@ -146,15 +169,23 @@
             </div>
             <div class="grid-2">
                 <div class="card">
-                    <h2>📜 Daily Quests</h2>
-                    <p class="muted">New quests every day. Daily visit streak: <strong id="dailyStreak">0</strong> 🔥</p>
+                    <h2>Daily quests</h2>
+                    <p class="muted">Resets 7:00 AM Mountain Time · visit streak <strong id="dailyStreak">0</strong> 🔥</p>
                     <div id="questList" class="quest-list"></div>
                 </div>
-                <div class="card">
-                    <h2>🏅 Achievements <small id="achCount" class="muted"></small></h2>
-                    <div id="achGrid" class="ach-grid"></div>
+                <div class="card weekly-card">
+                    <div class="shop-head">
+                        <div><h2>Weekly quests</h2><p class="muted">Harder goals. Reset Monday 7:00 AM Mountain Time.</p></div>
+                        <span id="weeklyTimer" class="timer-chip"></span>
+                    </div>
+                    <div id="weeklyList" class="quest-list weekly-list"></div>
+                    <div id="weeklyBonus" class="weekly-bonus"></div>
                 </div>
             </div>
+            <details class="card ach-card">
+                <summary><h2>Achievements <small id="achCount" class="muted"></small></h2></summary>
+                <div id="achGrid" class="ach-grid"></div>
+            </details>
         </section>
 
         <!-- ================= STATS ================= -->
@@ -178,6 +209,16 @@
         <!-- ================= SETTINGS ================= -->
         <section id="tab-settings" class="tab hidden">
             <div class="grid-2">
+                <div class="card">
+                    <h2>🎁 Redeem a code</h2>
+                    <p class="muted">Got a code? Type it in to unlock rewards. Each code works once per player.</p>
+                    <form id="codeForm" class="code-form" autocomplete="off">
+                        <input id="codeInput" placeholder="Enter code" maxlength="24" spellcheck="false" autocapitalize="characters" aria-label="Redeem code">
+                        <button class="big-btn" type="submit">Redeem</button>
+                    </form>
+                    <p id="codeMsg" class="code-msg"></p>
+                    <p id="redeemCount" class="muted"></p>
+                </div>
                 <div class="card">
                     <h2>⚙️ Settings</h2>
                     <div class="settings">
@@ -258,8 +299,11 @@
                     <div class="progress"><div id="progFill"></div></div>
                     <span id="timerStat" class="timer-stat" title="Time">0:00</span>
                     <span id="sentenceStat" class="sent-count">1/5</span>
+                    <span id="gameTag" class="game-tag hidden"></span>
+                    <div id="gameBoosts" class="game-boosts hidden"></div>
                 </div>
 
+                <div id="raceTrack" class="race-track hidden" aria-label="Race track"></div>
                 <div id="sentenceBox" class="sentence-box" aria-live="off"></div>
 
                 <div class="stats">
@@ -279,11 +323,13 @@
                     <div id="treat" class="treat">🦴</div>
                     <div id="trail" class="trail"></div>
 
+                    <div id="chaser" class="chaser hidden" aria-hidden="true">🐈</div>
                     <div id="dogWrap" class="dog-wrap">
                         <div id="dogNameTag" class="dog-name">Biscuit</div>
                         <div id="dogSlot"></div>
                     </div>
 
+                    <div id="raceCount" class="race-count hidden" aria-live="assertive"></div>
                     <div id="cheer" class="cheer hidden"></div>
                     <div id="hearts" class="hearts"></div>
                 </div>
@@ -296,6 +342,9 @@
         </section>
 
     </main>
+
+    <!-- ================= RACE ROOM (private multiplayer) ================= -->
+    <section id="roomView" class="room-view hidden" aria-label="Race room"></section>
 
     <!-- Hidden input: this is what opens the keyboard on phones and tablets -->
     <input id="typer" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"

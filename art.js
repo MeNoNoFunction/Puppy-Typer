@@ -47,22 +47,53 @@ window.PT_ART = (() => {
        ear   : style + size,     tail: style + size
     ===================================================== */
     const BREEDS = {
-        pup: { body: { x0: 42, x1: 130, top: 58, bot: 102 }, legW: 17, head: { cx: 150, cy: 55, r: 27 }, snout: { len: 11, h: 11, dy: 11 }, ear: { type: 'floppy', s: 1.0 }, tail: { type: 'plume', s: 0.75 } },
-        retriever: { body: { x0: 30, x1: 136, top: 50, bot: 96 }, legW: 14, head: { cx: 154, cy: 45, r: 21 }, snout: { len: 21, h: 10, dy: 9 }, ear: { type: 'floppy', s: 1.0 }, tail: { type: 'plume', s: 1.2 } },
-        corgi: { body: { x0: 34, x1: 134, top: 66, bot: 108 }, legW: 15, head: { cx: 152, cy: 57, r: 22 }, snout: { len: 15, h: 9, dy: 9 }, ear: { type: 'pointy', s: 1.25 }, tail: { type: 'stub' }, socks: true, blaze: true },
-        dachshund: { body: { x0: 14, x1: 138, top: 68, bot: 104 }, legW: 12, head: { cx: 160, cy: 62, r: 17 }, snout: { len: 26, h: 8, dy: 7 }, ear: { type: 'floppy', s: 1.45, w: 0.85 }, tail: { type: 'whip', s: 1 } },
-        pug: { body: { x0: 44, x1: 128, top: 60, bot: 104 }, legW: 16, head: { cx: 146, cy: 59, r: 27 }, snout: { len: 4, h: 12, dy: 12 }, ear: { type: 'fold' }, tail: { type: 'curl', s: 0.8 }, mask: true, wrinkles: true },
-        husky: { body: { x0: 30, x1: 136, top: 50, bot: 96 }, legW: 14, head: { cx: 154, cy: 47, r: 22 }, snout: { len: 17, h: 10, dy: 9 }, ear: { type: 'pointy', s: 1.0 }, tail: { type: 'curl', s: 1.35 }, socks: true, huskyMask: true },
-        poodle: { body: { x0: 42, x1: 126, top: 52, bot: 90 }, legW: 9, head: { cx: 148, cy: 40, r: 18 }, snout: { len: 22, h: 8, dy: 8 }, ear: { type: 'curly' }, tail: { type: 'pom' }, poodle: true },
-        whippet: { body: { x0: 26, x1: 138, top: 56, bot: 90 }, legW: 11, head: { cx: 158, cy: 46, r: 15 }, snout: { len: 27, h: 7, dy: 7 }, ear: { type: 'rose' }, tail: { type: 'whip', s: 1.5 } },
-        shiba: { body: { x0: 36, x1: 130, top: 54, bot: 98 }, legW: 15, head: { cx: 150, cy: 51, r: 23 }, snout: { len: 13, h: 10, dy: 9 }, ear: { type: 'pointy', s: 0.85 }, tail: { type: 'curl', s: 1.15 }, cheeks: true }
+        pup: { body: { x0: 42, x1: 130, top: 58, bot: 97 }, legW: 17, head: { cx: 150, cy: 49, r: 27 }, snout: { len: 11, h: 11, dy: 11 }, ear: { type: 'floppy', s: 1.0 }, tail: { type: 'plume', s: 0.75 } },
+        retriever: { body: { x0: 30, x1: 136, top: 50, bot: 90 }, legW: 14, head: { cx: 154, cy: 39, r: 21 }, snout: { len: 21, h: 10, dy: 9 }, ear: { type: 'floppy', s: 1.0 }, tail: { type: 'plume', s: 1.2 } },
+        corgi: { body: { x0: 34, x1: 134, top: 66, bot: 108 }, legW: 15, head: { cx: 152, cy: 51, r: 22 }, snout: { len: 15, h: 9, dy: 9 }, ear: { type: 'pointy', s: 1.25 }, tail: { type: 'stub' }, socks: true, blaze: true },
+        dachshund: { body: { x0: 14, x1: 138, top: 68, bot: 100 }, legW: 12, head: { cx: 160, cy: 56, r: 17 }, snout: { len: 26, h: 8, dy: 7 }, ear: { type: 'floppy', s: 1.45, w: 0.85 }, tail: { type: 'whip', s: 1 } },
+        pug: { body: { x0: 44, x1: 128, top: 60, bot: 100 }, legW: 16, head: { cx: 146, cy: 53, r: 27 }, snout: { len: 4, h: 12, dy: 12 }, ear: { type: 'fold' }, tail: { type: 'curl', s: 0.8 }, mask: true, wrinkles: true },
+        husky: { body: { x0: 30, x1: 136, top: 50, bot: 90 }, legW: 14, head: { cx: 154, cy: 41, r: 22 }, snout: { len: 17, h: 10, dy: 9 }, ear: { type: 'pointy', s: 1.0 }, tail: { type: 'curl', s: 1.35 }, socks: true, huskyMask: true },
+        poodle: { body: { x0: 42, x1: 126, top: 52, bot: 86 }, legW: 9, head: { cx: 148, cy: 34, r: 18 }, snout: { len: 22, h: 8, dy: 8 }, ear: { type: 'curly' }, tail: { type: 'pom' }, poodle: true },
+        whippet: { body: { x0: 26, x1: 138, top: 56, bot: 86 }, legW: 11, head: { cx: 158, cy: 40, r: 15 }, snout: { len: 27, h: 7, dy: 7 }, ear: { type: 'rose' }, tail: { type: 'whip', s: 1.5 } },
+        mutt: { body: { x0: 32, x1: 134, top: 54, bot: 96 }, legW: 15, head: { cx: 152, cy: 43, r: 24 }, snout: { len: 15, h: 10, dy: 10 }, ear: { type: 'pointy', s: 1.15 }, tail: { type: 'plume', s: 1.35 }, fluffy: true },
+        lab: { body: { x0: 30, x1: 134, top: 52, bot: 94 }, legW: 16, head: { cx: 153, cy: 41, r: 23 }, snout: { len: 19, h: 12, dy: 10 }, ear: { type: 'floppy', s: 0.85 }, tail: { type: 'whip', s: 1.2 } },
+        shiba: { body: { x0: 36, x1: 130, top: 54, bot: 92 }, legW: 15, head: { cx: 150, cy: 45, r: 23 }, snout: { len: 13, h: 10, dy: 9 }, ear: { type: 'pointy', s: 0.85 }, tail: { type: 'curl', s: 1.15 }, cheeks: true }
     };
 
+    // cartoon proportions: bigger head, shorter snout, chunkier legs
+    Object.values(BREEDS).forEach(br => {
+        br.head.r = Math.round(br.head.r * 1.14 * 10) / 10;
+        br.head.cy += 2;
+        br.snout.len = Math.round(br.snout.len * 0.78);
+        br.snout.h = Math.round(br.snout.h * 1.12 * 10) / 10;
+        br.legW = Math.round(br.legW * 1.28);
+        br.body.bot += 3;
+    });
+
     /* ---------------- leg + tail + ear builders ---------------- */
-    function legPath(w, h) {
-        return `M${-w * 0.5} 0 L${w * 0.5} 0 C${w * 0.5} ${h * 0.5} ${w * 0.36} ${h * 0.68} ${w * 0.38} ${h - w * 0.5} ` +
-            `C${w * 0.98} ${h - w * 0.55} ${w * 1.02} ${h} ${w * 0.5} ${h} L${-w * 0.42} ${h} ` +
-            `C${-w * 0.72} ${h} ${-w * 0.66} ${h - w * 0.55} ${-w * 0.36} ${h - w * 0.5} C${-w * 0.38} ${h * 0.68} ${-w * 0.5} ${h * 0.5} ${-w * 0.5} 0 Z`;
+    const f1 = n => (Math.round(n * 10) / 10);
+    // Catmull-Rom spline through points -> smooth cubic path (organic outlines instead of boxes)
+    function smooth(pts, closed = true) {
+        const n = pts.length, at = i => closed ? pts[(i + n) % n] : pts[Math.max(0, Math.min(n - 1, i))];
+        let d = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+        const last = closed ? n : n - 1;
+        for (let i = 0; i < last; i++) {
+            const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+            d += ` C${f1(p1[0] + (p2[0] - p0[0]) / 6)} ${f1(p1[1] + (p2[1] - p0[1]) / 6)} ${f1(p2[0] - (p3[0] - p1[0]) / 6)} ${f1(p2[1] - (p3[1] - p1[1]) / 6)} ${f1(p2[0])} ${f1(p2[1])}`;
+        }
+        return d + (closed ? ' Z' : '');
+    }
+    // legs: origin = top of the leg, y down to the paw. front = straight pastern, hind = bent hock
+    function legPath(w, h, hind) {
+        const P = hind ? [
+            [-0.62, 0], [0.62, 0], [0.64, 0.2], [0.42, 0.44], [0.3, 0.62], [0.3, 0.8], [0.4, 1 - 0.34 / (h / w)],
+            [0.78, 1 - 0.14 / (h / w)], [0.7, 1], [-0.32, 1], [-0.46, 1 - 0.14 / (h / w)], [-0.2, 0.78], [-0.1, 0.72],
+            [-0.5, 0.56], [-0.72, 0.28]
+        ] : [
+            [-0.58, 0], [0.58, 0], [0.54, 0.3], [0.38, 0.6], [0.34, 0.82], [0.4, 1 - 0.3 / (h / w)],
+            [0.8, 1 - 0.12 / (h / w)], [0.72, 1], [-0.34, 1], [-0.5, 1 - 0.14 / (h / w)], [-0.3, 0.84], [-0.36, 0.58], [-0.52, 0.3]
+        ];
+        return smooth(P.map(p => [p[0] * w, p[1] * h]));
     }
 
     function earPath(br, hd, far) {
@@ -94,25 +125,36 @@ window.PT_ART = (() => {
     }
 
     function tailSVG(br, ctx) {
-        const { b, fillMain, OL, still } = ctx;
+        const { b, fillMain, OL, still, light, dark } = ctx;
         const t = br.tail, s = t.s || 1;
         const px = b.x0 + 10, py = b.top + 10;
-        let shape = '';
         const solid = d => `<path d="${d}" fill="${fillMain}" stroke="${OL}" stroke-width="2.8" stroke-linejoin="round"/>`;
-        const thick = (d, w) => `<path d="${d}" fill="none" stroke="${OL}" stroke-width="${w + 5.6}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${fillMain}" stroke-width="${w}" stroke-linecap="round"/>`;
-        if (t.type === 'plume') {
-            shape = solid(`M${px + 12} ${py + 12} C${px - 12} ${py + 10} ${px - 30 * s} ${py - 8} ${px - 28 * s} ${py - 36 * s} ` +
-                `C${px - 17 * s} ${py - 24 * s} ${px - 8} ${py - 14} ${px + 12} ${py - 4} Z`) +
-                `<path d="M${px - 4} ${py - 4} C${px - 14} ${py - 8} ${px - 22 * s} ${py - 20 * s} ${px - 25 * s} ${py - 30 * s}" fill="none" stroke="${ctx.light}" stroke-width="3" stroke-linecap="round" opacity=".55"/>`;
+        const strands = (arr, col, w = 1.3, op = .45) => `<path d="${arr}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
+        let shape = '';
+        if (t.type === 'plume') {            // feathered retriever / setter tail
+            const d = `M${px + 12} ${py + 13} C${px - 10} ${py + 12} ${px - 28 * s} ${py - 4} ${px - 32 * s} ${py - 34 * s} ` +
+                `C${px - 22 * s} ${py - 30 * s} ${px - 18 * s} ${py - 22 * s} ${px - 12 * s} ${py - 22 * s} C${px - 6} ${py - 14} ${px + 2} ${py - 7} ${px + 12} ${py - 3} Z`;
+            shape = solid(d) +
+                `<g clip-path="none">` + strands(`M${px - 6} ${py + 4} C${px - 16 * s} ${py} ${px - 24 * s} ${py - 14 * s} ${px - 28 * s} ${py - 28 * s}`, light, 3, .5) +
+                strands(`M${px - 2} ${py + 8} C${px - 14 * s} ${py + 6} ${px - 22 * s} ${py - 6 * s} ${px - 25 * s} ${py - 18 * s}`, dark, 1.2, .5) +
+                strands(`M${px - 12 * s} ${py - 6} l-4 6 M${px - 18 * s} ${py - 14 * s} l-5 5 M${px - 23 * s} ${py - 24 * s} l-4 4`, dark, 1.2, .55) + `</g>`;
         } else if (t.type === 'stub') {
-            shape = `<ellipse cx="${px - 4}" cy="${py + 2}" rx="10" ry="7" transform="rotate(-28 ${px - 4} ${py + 2})" fill="${fillMain}" stroke="${OL}" stroke-width="2.8"/>`;
-        } else if (t.type === 'whip') {
-            shape = thick(`M${px + 10} ${py + 12} C${px - 14} ${py + 12} ${px - 24 * s} ${py + 2} ${px - 32 * s} ${py - 20 * s}`, 7);
-        } else if (t.type === 'curl') {
-            shape = thick(`M${px + 8} ${py + 10} C${px - 16 * s} ${py + 12} ${px - 24 * s} ${py - 14 * s} ${px - 6} ${py - 24 * s} C${px + 8} ${py - 30 * s} ${px + 22 * s} ${py - 18 * s} ${px + 12} ${py - 8}`, 10 * Math.min(s, 1.15));
-        } else if (t.type === 'pom') {
-            shape = thick(`M${px + 8} ${py + 10} C${px - 6} ${py + 8} ${px - 12} ${py - 2} ${px - 16} ${py - 10}`, 4) +
-                [[-19, -14, 8.5], [-27, -9, 7], [-22, -22, 7.5], [-14, -18, 6.5]].map(c => `<circle cx="${px + c[0]}" cy="${py + c[1]}" r="${c[2]}" fill="${fillMain}" stroke="${OL}" stroke-width="2.4"/>`).join('');
+            shape = `<path d="M${px + 8} ${py + 12} C${px - 6} ${py + 12} ${px - 14} ${py + 2} ${px - 12} ${py - 8} C${px - 4} ${py - 6} ${px + 6} ${py - 2} ${px + 12} ${py + 2} Z" fill="${fillMain}" stroke="${OL}" stroke-width="2.8" stroke-linejoin="round"/>` +
+                strands(`M${px - 2} ${py + 4} l-6 -6`, dark, 1.2, .5);
+        } else if (t.type === 'whip') {       // long tapered tail
+            const e = [px - 34 * s, py - 22 * s];
+            shape = solid(`M${px + 12} ${py + 10} C${px - 12} ${py + 14} ${px - 24 * s} ${py + 4} ${e[0]} ${e[1]} C${px - 26 * s} ${py - 6} ${px - 14} ${py - 2} ${px + 12} ${py - 3} Z`) +
+                strands(`M${px - 2} ${py + 5} C${px - 16 * s} ${py + 6} ${px - 24 * s} ${py - 4} ${px - 31 * s} ${py - 18 * s}`, light, 1.8, .5);
+        } else if (t.type === 'curl') {       // thick spitz curl over the back
+            const w = Math.min(s, 1.2);
+            shape = solid(`M${px + 8} ${py + 12} C${px - 18 * s} ${py + 12} ${px - 28 * s} ${py - 14 * s} ${px - 8} ${py - 28 * s} C${px + 8} ${py - 36 * s} ${px + 26 * s} ${py - 22 * s} ${px + 14} ${py - 8} ` +
+                `C${px + 8} ${py - 14 * s} ${px - 2} ${py - 14 * s} ${px - 6} ${py - 8} C${px - 4} ${py - 2} ${px + 2} ${py - 2} ${px + 12} ${py - 2} Z`) +
+                strands(`M${px - 10} ${py + 2} C${px - 20 * s} ${py - 4} ${px - 18 * s} ${py - 18 * s} ${px - 6} ${py - 24 * s}`, light, 3 * w, .5) +
+                strands(`M${px - 12} ${py - 4} l-4 3 M${px - 16 * s} ${py - 14 * s} l-4 1 M${px - 4} ${py - 26 * s} l-1 -4`, dark, 1.2, .55);
+        } else if (t.type === 'pom') {        // clipped poodle tail + pompon
+            shape = solid(`M${px + 10} ${py + 10} C${px - 2} ${py + 12} ${px - 10} ${py + 2} ${px - 14} ${py - 8} L${px - 8} ${py - 10} C${px - 2} ${py - 4} ${px + 4} ${py - 2} ${px + 12} ${py - 2} Z`) +
+                [[-20, -16, 9], [-29, -11, 7.5], [-24, -25, 8], [-14, -22, 7]].map(c => `<circle cx="${px + c[0]}" cy="${py + c[1]}" r="${c[2]}" fill="${fillMain}" stroke="${OL}" stroke-width="2.4"/>`).join('') +
+                `<circle cx="${px - 22}" cy="${py - 19}" r="4" fill="#fff" opacity=".22"/>`;
         }
         const wag = still ? '' : `<animateTransform attributeName="transform" type="rotate" values="-9 ${px + 6} ${py + 10};11 ${px + 6} ${py + 10};-9 ${px + 6} ${py + 10}" keyTimes="0;.5;1" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1" dur="0.6s" repeatCount="indefinite"/>`;
         return `<g>${shape}${wag}</g>`;
@@ -193,6 +235,15 @@ window.PT_ART = (() => {
       <path d="M-18 -3 L18 -3 L18 4 L-18 4Z" fill="#f0a800"/>
       <circle cx="-18" cy="-18" r="2.6" fill="#ffe082" ${sw(1.4)}/><circle cx="0" cy="-25" r="3" fill="#ffe082" ${sw(1.4)}/><circle cx="18" cy="-18" r="2.6" fill="#ffe082" ${sw(1.4)}/>
       <circle cx="0" cy="-10" r="3.2" fill="#e53935" ${sw(1.2)}/><circle cx="-10" cy="0.5" r="2.2" fill="#42a5f5"/><circle cx="10" cy="0.5" r="2.2" fill="#43a047"/>`,
+        elf: () => `<path d="M-17 4 L-14 -9 C-10 -22 2 -29 15 -24 C21 -21 22 -15 18 -13 C14 -13 12 -7 17 4 Z" fill="#2e9b4f" ${sw()}/>
+      <path d="M-18 -3 L18 -3 L18 5 L-18 5 Z" fill="#d32f2f" ${sw(1.6)}/><circle cx="-11" cy="1" r="1.5" fill="#fff"/><circle cx="-3" cy="1" r="1.5" fill="#fff"/><circle cx="5" cy="1" r="1.5" fill="#fff"/><circle cx="13" cy="1" r="1.5" fill="#fff"/>
+      <path d="M-9 -12 Q-3 -18 5 -19" stroke="#6fd18a" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>
+      <circle cx="20" cy="-12" r="3.6" fill="#ffca28" ${sw(1.4)}/><path d="M17.8 -12 h4.4" stroke="#b8860b" stroke-width="1.1"/>`,
+        pinkcrown: () => `<path d="M-18 4 L-18 -17 L-9 -7 L0 -24 L9 -7 L18 -17 L18 4 Z" fill="#f9b4d0" ${sw()}/>
+      <path d="M-18 -3 L18 -3 L18 4 L-18 4Z" fill="#ec7fae"/><path d="M-12 -6 L-9 -13 M12 -6 L9 -13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
+      <circle cx="-18" cy="-18" r="2.6" fill="#fff" ${sw(1.4)}/><circle cx="0" cy="-25" r="3.2" fill="#fff" ${sw(1.4)}/><circle cx="18" cy="-18" r="2.6" fill="#fff" ${sw(1.4)}/>
+      <path d="M0 -12.5 C-4.4 -16 -3.4 -19.6 0 -17.6 C3.4 -19.6 4.4 -16 0 -12.5Z" fill="#ff4f8b" ${sw(1.1)}/><circle cx="-10" cy="0.5" r="2.1" fill="#fff"/><circle cx="10" cy="0.5" r="2.1" fill="#fff"/>
+      <path d="M-22 -22 l1.2 2.6 2.6 1.2 -2.6 1.2 -1.2 2.6 -1.2 -2.6 -2.6 -1.2 2.6 -1.2z" fill="#fff" opacity=".9"/>`,
         grad: () => `<path d="M-14 -5 L-14 5 C-8 10 8 10 14 5 L14 -5 Z" fill="#34343c" ${sw()}/>
       <path d="M-29 -12 L0 -25 L29 -12 L0 1 Z" fill="#26262c" ${sw()}/><path d="M-15 -12 L0 -18 L15 -12" stroke="#fff" stroke-width="1.4" fill="none" opacity=".2"/>
       <circle cx="0" cy="-12" r="2.4" fill="#ffca28"/><path d="M0 -12 L23 -9 L23 6" stroke="#ffca28" stroke-width="2" fill="none"/>
@@ -245,13 +296,18 @@ window.PT_ART = (() => {
     const NA = [-14, -13], NC = [4, -1], NE = [15, 12];
     const nb = t => [(1 - t) * (1 - t) * NA[0] + 2 * t * (1 - t) * NC[0] + t * t * NE[0], (1 - t) * (1 - t) * NA[1] + 2 * t * (1 - t) * NC[1] + t * t * NE[1]];
     const NPATH = `M${NA[0]} ${NA[1]} Q${NC[0]} ${NC[1]} ${NE[0]} ${NE[1]}`;
-    const band = (c, w = 7) => `<path d="${NPATH}" fill="none" stroke="${INK}" stroke-width="${w + 3.6}" stroke-linecap="round"/><path d="${NPATH}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+    const band = (c, w = 4.6) => `<path d="${NPATH}" fill="none" stroke="${INK}" stroke-width="${w + 3.6}" stroke-linecap="round"/><path d="${NPATH}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
     const tag = (t, c = '#ffd54f') => { const [x, y] = nb(t); return `<circle cx="${(x - 1).toFixed(1)}" cy="${(y + 6.5).toFixed(1)}" r="4.8" fill="${c}" ${sw(1.6)}/><path d="M${(x - 2.8).toFixed(1)} ${(y + 5.5).toFixed(1)} l1.6 1.6 l2.4 -2.6" stroke="#b8860b" stroke-width="1.2" fill="none"/>`; };
     const along = (n, fn) => { let o = ''; for (let i = 0; i < n; i++) { const t = n === 1 ? 0.5 : i / (n - 1); const [x, y] = nb(t); o += fn(x, y, i, t); } return o; };
     const NECKS = {
         collar_red: () => band('#e53935') + tag(0.82),
         collar_blue: () => band('#1e88e5') + tag(0.82),
         collar_green: () => band('#43a047') + tag(0.82),
+        candycane: () => band('#fafafa', 11) + along(7, (x, y) => `<path d="M${(x - 2.6).toFixed(1)} ${(y - 5).toFixed(1)} L${(x + 2.6).toFixed(1)} ${(y + 5).toFixed(1)}" stroke="#e53935" stroke-width="3.6" stroke-linecap="round"/>`) +
+            (() => { const [x, y] = nb(0.9); return `<path d="M${(x - 3).toFixed(1)} ${(y + 3).toFixed(1)} l-2 12 l6 0 l1 -10 Z" fill="#fafafa" ${sw(1.6)}/><path d="M${(x - 4).toFixed(1)} ${(y + 9).toFixed(1)} l6 1 M${(x - 4.5).toFixed(1)} ${(y + 13).toFixed(1)} l5.5 0" stroke="#e53935" stroke-width="2.2"/>`; })(),
+        holly: () => band('#2e7d32', 7.5) + (() => { const [x, y] = nb(0.8); return `<g transform="translate(${(x - 1).toFixed(1)} ${(y + 6).toFixed(1)})"><path d="M0 0 C-9 -3 -11 5 -4 8 C-3 3 -1 2 0 0Z" fill="#43a047" ${sw(1.3)}/><path d="M0 0 C9 -3 11 5 4 8 C3 3 1 2 0 0Z" fill="#2e9b4f" ${sw(1.3)}/><circle cx="-1.6" cy="3.2" r="2.6" fill="#e53935" ${sw(1.1)}/><circle cx="2.2" cy="2.4" r="2.4" fill="#e53935" ${sw(1.1)}/><circle cx="-1.4" cy="2.4" r=".7" fill="#fff" opacity=".8"/></g>`; })() +
+            along(4, (x, y) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.6" fill="#e53935"/>`),
+        collar_babypink: () => { const [x, y] = nb(0.82); return band('#f8c9dd', 7.5) + `<g transform="translate(${(x - 1).toFixed(1)} ${(y + 7).toFixed(1)})"><path d="M0 5 C-7 -0.5 -6 -6.5 0 -3.2 C6 -6.5 7 -0.5 0 5Z" fill="#ff6fa5" ${sw(1.5)}/><circle cx="-2" cy="-2" r="1.1" fill="#fff" opacity=".8"/></g>` + along(4, (px, py) => `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="1.1" fill="#fff" opacity=".9"/>`); },
         bell: () => { const [x, y] = nb(0.82); return band('#e53935') + `<circle cx="${x - 1}" cy="${y + 7.5}" r="5.6" fill="#ffca28" ${sw(1.6)}/><path d="M${x - 6} ${y + 8} L${x + 4} ${y + 8}" stroke="#b8860b" stroke-width="1.4"/><circle cx="${x - 1}" cy="${y + 10.5}" r="1.3" fill="#7a5a00"/>`; },
         bandana: () => `<path d="M-16 -15 L18 14 L1 36 Z" fill="#e53935" ${sw()}/><path d="M-16 -15 L18 14" stroke="#b71c1c" stroke-width="3.4"/>
       <circle cx="-2" cy="2" r="2" fill="#fff"/><circle cx="8" cy="12" r="2" fill="#fff"/><circle cx="0" cy="18" r="2" fill="#fff"/><circle cx="-6" cy="-4" r="1.6" fill="#fff"/><circle cx="4" cy="26" r="1.6" fill="#fff"/>`,
@@ -313,6 +369,16 @@ window.PT_ART = (() => {
         snowflake: () => { const [x, y] = nb(0.6); return band('#64b5f6', 5) + star(x, y + 10, 8, '#e3f2fd', `stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"`); }
     });
 
+    /* soft "studio light" for wearables: blurred alpha -> diffuse lighting, multiplied over the flat colours + a contact shadow */
+    const lightFilter = id => `<filter id="${id}" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/>
+    <feDiffuseLighting in="b" surfaceScale="4.2" diffuseConstant="1.22" lighting-color="#fff" result="L"><feDistantLight azimuth="235" elevation="56"/></feDiffuseLighting>
+    <feComposite in="SourceGraphic" in2="L" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="M"/>
+    <feComposite in="M" in2="SourceAlpha" operator="in" result="Mo"/>
+    <feGaussianBlur in="SourceAlpha" stdDeviation="1.3" result="sb"/><feOffset in="sb" dx=".7" dy="1.5" result="so"/>
+    <feColorMatrix in="so" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .28 0" result="sh"/>
+    <feMerge><feMergeNode in="sh"/><feMergeNode in="Mo"/></feMerge></filter>`;
+
     /* =====================================================
        THE DOG
        sel  = { breed, coat, hat, neck, face }
@@ -327,109 +393,170 @@ window.PT_ART = (() => {
         const OL = shade(coat.dark, 0.42);
         const k = hd.r / 21;
         const bh = b.bot - b.top, bw = b.x1 - b.x0;
+        const R = rng(Math.round(bw * 7 + hd.r * 13 + b.top));
+        const bx = t => b.x0 + t * bw, by = t => b.top + t * bh;
 
         /* paint */
-        let defs = '', main = fur;
+        let defs = lightFilter(u + 'F'), main = fur;
         if (coat.grad) {
             const n = coat.grad.length;
             main = `url(#${u}g)`;
             defs += `<linearGradient id="${u}g" gradientUnits="userSpaceOnUse" x1="${b.x0 - 10}" y1="20" x2="${hd.cx + hd.r}" y2="110">${coat.grad.map((c, i) => `<stop offset="${Math.round(i / (n - 1) * 100)}%" stop-color="${c}"/>`).join('')}</linearGradient>`;
         }
-        const legFill = br.socks ? `url(#${u}s)` : fur;
-        defs += `<linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset=".64" stop-color="${fur}"/><stop offset=".64" stop-color="${light}"/></linearGradient>`;
+        const legFill = br.socks ? `url(#${u}s)` : main;
+        const legFar = br.socks ? `url(#${u}sd)` : dark;
+        defs += `<linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset=".66" stop-color="${fur}"/><stop offset=".66" stop-color="${light}"/></linearGradient>` +
+            `<linearGradient id="${u}sd" x1="0" y1="0" x2="0" y2="1"><stop offset=".66" stop-color="${dark}"/><stop offset=".66" stop-color="${shade(light, 0.85)}"/></linearGradient>` +
+            `<linearGradient id="${u}v" gradientUnits="userSpaceOnUse" x1="0" y1="${by(-0.15)}" x2="0" y2="${by(1.12)}"><stop offset="0" stop-color="#fff" stop-opacity=".30"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/><stop offset=".68" stop-color="${OL}" stop-opacity="0"/><stop offset="1" stop-color="${OL}" stop-opacity=".34"/></linearGradient>` +
+            `<linearGradient id="${u}bl" gradientUnits="userSpaceOnUse" x1="0" y1="${by(0.42)}" x2="0" y2="${by(1.1)}"><stop offset="0" stop-color="${light}" stop-opacity="0"/><stop offset=".5" stop-color="${light}" stop-opacity=".78"/><stop offset="1" stop-color="${light}" stop-opacity=".95"/></linearGradient>` +
+            `<radialGradient id="${u}bib" gradientUnits="userSpaceOnUse" cx="${bx(0.97)}" cy="${by(0.58)}" r="${bh * 0.62}"><stop offset="0" stop-color="${light}" stop-opacity=".9"/><stop offset="1" stop-color="${light}" stop-opacity="0"/></radialGradient>` +
+            `<radialGradient id="${u}hh" gradientUnits="userSpaceOnUse" cx="${hd.cx - hd.r * 0.15}" cy="${hd.cy - hd.r * 0.55}" r="${hd.r * 1.25}"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>` +
+            `<linearGradient id="${u}hs" gradientUnits="userSpaceOnUse" x1="0" y1="${hd.cy - hd.r * 0.2}" x2="0" y2="${hd.cy + hd.r * 1.3}"><stop offset="0" stop-color="${OL}" stop-opacity="0"/><stop offset="1" stop-color="${OL}" stop-opacity=".32"/></linearGradient>`;
 
-        /* shapes that make up the silhouette */
-        const bodyEls =
-            `<rect x="${b.x0}" y="${b.top}" width="${bw}" height="${bh}" rx="${bh * 0.48}"/>` +
-            `<ellipse cx="${b.x1 - bh * 0.42}" cy="${b.top + bh * 0.52}" rx="${bh * 0.62}" ry="${bh * 0.58}"/>` +
-            `<ellipse cx="${b.x0 + bh * 0.55}" cy="${b.top + bh * 0.55}" rx="${bh * 0.6}" ry="${bh * 0.55}"/>` +
-            `<polygon points="${b.x1 - bh * 0.9},${b.top + 2} ${hd.cx - hd.r * 0.55},${hd.cy - hd.r * 0.2} ${hd.cx + hd.r * 0.2},${hd.cy + hd.r * 0.8} ${b.x1 - bh * 0.1},${b.top + bh * 0.9}"/>`;
+        /* ---- torso + neck as ONE organic outline ---- */
+        const torsoPts = [
+            [bx(0.00), by(0.36)], [bx(0.05), by(0.0)], [bx(0.19), by(-0.08)], [bx(0.40), by(-0.02)], [bx(0.60), by(-0.03)],
+            [bx(0.80), by(-0.13)], [hd.cx - hd.r * 0.8, hd.cy - hd.r * 0.1], [hd.cx - hd.r * 0.1, hd.cy + hd.r * 0.95], [hd.cx + hd.r * 0.12, hd.cy + hd.r * 1.02],
+            [b.x1 + bw * 0.05, by(0.7)], [bx(0.97), by(1.1)], [bx(0.82), by(1.1)], [bx(0.66), by(0.92)], [bx(0.5), by(0.8)], [bx(0.34), by(0.76)], [bx(0.2), by(0.96)], [bx(0.04), by(0.96)]
+        ];
+        let bodyEls = `<path d="${smooth(torsoPts)}"/>`;
+        if (br.fluffy) {
+            for (let x = b.x0 + 8; x <= b.x1 - bh * 0.9; x += 12) bodyEls += `<circle cx="${x}" cy="${b.top + 3}" r="7.5"/>`;
+            for (let x = b.x0 + 14; x <= b.x1 - 10; x += 13) bodyEls += `<circle cx="${x}" cy="${b.bot - 1}" r="7"/>`;
+            [[b.x1 - 2, b.top + bh * 0.42, 8], [b.x1 + 2, b.top + bh * 0.66, 8], [b.x1 - 6, b.bot - 6, 8], [b.x1 - 20, b.bot + 1, 7.5]].forEach(c => { bodyEls += `<circle cx="${c[0]}" cy="${c[1]}" r="${c[2]}"/>`; });
+        }
+        if (br.poodle) bodyEls += [[bx(0.9), by(0.5), 9], [bx(0.82), by(0.1), 8], [bx(0.12), by(0.45), 10], [bx(0.1), by(0.9), 8]].map(c => `<circle cx="${c[0]}" cy="${c[1]}" r="${c[2]}"/>`).join('');
+
+        /* ---- head: skull, stop, muzzle, jaw ---- */
         const tipX = hd.cx + hd.r * 0.8 + sn.len;
+        const sncy = hd.cy + sn.dy, snry = sn.h;
         const snx0 = hd.cx - hd.r * 0.1;
-        const sncx = (tipX + snx0) / 2, snrx = (tipX - snx0) / 2, sncy = hd.cy + sn.dy, snry = sn.h;
-        let headEls = `<circle cx="${hd.cx}" cy="${hd.cy}" r="${hd.r}"/><ellipse cx="${sncx}" cy="${sncy}" rx="${snrx}" ry="${snry}"/>`;
+        const sncx = (tipX + snx0) / 2, snrx = (tipX - snx0) / 2;
+        const mTop = sncy - snry;
+        const headPts = [
+            [hd.cx - hd.r * 0.9, hd.cy - hd.r * 0.05], [hd.cx - hd.r * 0.62, hd.cy - hd.r * 0.8], [hd.cx - hd.r * 0.05, hd.cy - hd.r * 1.02],
+            [hd.cx + hd.r * 0.55, hd.cy - hd.r * 0.82], [hd.cx + hd.r * 0.8, Math.min(hd.cy - hd.r * 0.28, mTop - 1)],
+            [(hd.cx + hd.r * 0.82 + tipX) / 2, mTop + snry * 0.05], [tipX - 0.8, mTop + snry * 0.28], [tipX + 1.6, sncy - snry * 0.18],
+            [tipX + 0.4, sncy + snry * 0.55], [tipX - sn.len * 0.25 - 2, sncy + snry * 1.0], [hd.cx + hd.r * 0.42, Math.max(sncy + snry * 0.95, hd.cy + hd.r * 0.78)],
+            [hd.cx - hd.r * 0.05, hd.cy + hd.r * 0.98], [hd.cx - hd.r * 0.6, hd.cy + hd.r * 0.82]
+        ];
+        let headEls = `<path d="${smooth(headPts)}"/>`;
         if (br.cheeks) headEls += `<ellipse cx="${hd.cx + hd.r * 0.1}" cy="${hd.cy + hd.r * 0.65}" rx="${hd.r * 0.95}" ry="${hd.r * 0.55}"/>`;
         if (br.poodle) headEls += [[-0.3, -1.05, 0.5], [0.15, -1.1, 0.46], [-0.7, -0.8, 0.4]].map(c => `<circle cx="${hd.cx + hd.r * c[0]}" cy="${hd.cy + hd.r * c[1]}" r="${hd.r * c[2]}"/>`).join('');
-        const union = els => `<g fill="${OL}" stroke="${OL}" stroke-width="5.4" stroke-linejoin="round">${els}</g><g fill="${main}">${els}</g>`;
-        defs += `<clipPath id="${u}b">${bodyEls}</clipPath><clipPath id="${u}h">${headEls}</clipPath><clipPath id="${u}all">${bodyEls}${headEls}</clipPath>`;
+        if (br.fluffy) {
+            headEls += [[-0.82, 0.35, 0.34], [-0.62, 0.85, 0.36], [-0.2, 1.02, 0.36], [0.3, 1.04, 0.36], [0.78, 0.9, 0.3], [-0.3, -1.0, 0.3], [0.1, -1.04, 0.3], [0.5, -0.95, 0.26]]
+                .map(c => `<circle cx="${hd.cx + hd.r * c[0]}" cy="${hd.cy + hd.r * c[1]}" r="${hd.r * c[2]}"/>`).join('');
+        }
+        const union = els => `<g fill="${OL}" stroke="${OL}" stroke-width="3.6" stroke-linejoin="round">${els}</g><g fill="${main}">${els}</g>`;
+        defs += `<clipPath id="${u}b">${bodyEls}</clipPath><clipPath id="${u}h">${headEls}</clipPath>`;
 
-        /* legs */
+        /* ---- legs ---- */
         const legTop = b.bot - 18, legH = GROUND - legTop, lw = br.legW;
-        const leg = (x, far, cls) => {
-            const fill = far ? dark : legFill;
+        const leg = (x, far, cls, hind) => {
+            const fill = far ? legFar : legFill;
             let extra = '';
             if (br.poodle) extra = `<circle cx="0" cy="${legH * 0.66}" r="${lw * 0.95}" fill="${far ? dark : fur}" stroke="${OL}" stroke-width="2.4"/>`;
-            return `<g transform="translate(${x} ${legTop})"><g class="leg ${cls}"><path d="${legPath(lw, legH)}" fill="${fill}" stroke="${OL}" stroke-width="2.6" stroke-linejoin="round"/>${extra}` +
-                `<path d="M${lw * 0.12} ${legH - 3} l0 -${lw * 0.34} M${lw * 0.46} ${legH - 3} l0 -${lw * 0.3}" stroke="${OL}" stroke-width="1.3" stroke-linecap="round" opacity=".55"/></g></g>`;
+            const toes = '';
+            const sh = `<path d="M${-lw * 0.5} ${legH * 0.12} C${-lw * 0.42} ${legH * 0.5} ${-lw * 0.3} ${legH * 0.66} ${-lw * 0.28} ${legH * 0.84}" fill="none" stroke="${OL}" stroke-width="${lw * 0.22}" stroke-linecap="round" opacity="${far ? 0 : .12}"/>`;
+            return `<g transform="translate(${x} ${legTop})"><g class="leg ${cls}"><path d="${legPath(lw, legH, hind)}" fill="${fill}" stroke="${OL}" stroke-width="1.9" stroke-linejoin="round"/>${sh}${extra}${toes}</g></g>`;
         };
         const gap = lw * 1.75;
-        const legsFar = leg(b.x0 + 16 + gap, true, 'leg-b') + leg(b.x1 - 20 - gap, true, 'leg-a');
-        const legsNear = leg(b.x0 + 16, false, 'leg-a') + leg(b.x1 - 20, false, 'leg-b');
+        const legsFar = leg(b.x0 + 16 + gap, true, 'leg-b', true) + leg(b.x1 - 20 - gap, true, 'leg-a', false);
+        const legsNear = leg(b.x0 + 16, false, 'leg-a', true) + leg(b.x1 - 20, false, 'leg-b', false);
 
-        /* body shading */
-        const bellyCol = br.socks ? light : light;
+        /* ---- body shading: light from above, belly + chest bib, muscle lines, fur ---- */
+        let ticks = '';
+        for (let i = 0; i < 22; i++) {
+            const x = b.x0 + 6 + R() * (bw - 6), y = b.top - 2 + R() * (bh + 4), l = 3 + R() * 3.5;
+            ticks += `M${f1(x)} ${f1(y)} l${f1(-l)} ${f1(l * 0.55)} `;
+        }
+        const backLine = `M${bx(0.08)} ${by(0.1)} C${bx(0.3)} ${by(0.0)} ${bx(0.55)} ${by(0.02)} ${bx(0.8)} ${by(-0.02)}`;
         const bodyShade = `<g clip-path="url(#${u}b)">
-      <ellipse cx="${(b.x0 + b.x1) / 2 + 6}" cy="${b.bot + 2}" rx="${bw * 0.44}" ry="${bh * 0.34}" fill="${bellyCol}" opacity=".92"/>
-      <ellipse cx="${(b.x0 + b.x1) / 2 - 4}" cy="${b.top + bh * 0.16}" rx="${bw * 0.34}" ry="${bh * 0.12}" fill="#fff" opacity=".2"/>
-      <path d="M${b.x0 - 4} ${b.top + bh * 0.62} C${b.x0 + bw * 0.3} ${b.top + bh * 0.8} ${b.x1 - bw * 0.3} ${b.top + bh * 0.8} ${b.x1 + 6} ${b.top + bh * 0.55} L${b.x1 + 6} ${b.bot + 6} L${b.x0 - 4} ${b.bot + 6} Z" fill="${OL}" opacity=".07"/></g>`;
+      <rect x="${b.x0 - 12}" y="${by(-0.2)}" width="${bw + 40}" height="${bh * 1.5}" fill="url(#${u}bl)"/>
+      <rect x="${b.x0 - 12}" y="${by(-0.2)}" width="${bw + 40}" height="${bh * 1.5}" fill="url(#${u}bib)"/>
+      <rect x="${b.x0 - 12}" y="${by(-0.2)}" width="${bw + 40}" height="${bh * 1.5}" fill="url(#${u}v)"/>
+      <path d="${backLine}" fill="none" stroke="#fff" stroke-width="${bh * 0.16}" stroke-linecap="round" opacity=".2"/>
+      <ellipse cx="${bx(0.2)}" cy="${by(0.52)}" rx="${bw * 0.15}" ry="${bh * 0.42}" fill="#fff" opacity=".07"/>
+      ${coat.pattern ? patternSVG(coat.pattern, coat.patColor, br) : ''}
+    </g>`;
 
-        /* head details */
+        /* ---- head details ---- */
         const eyeX = hd.cx + hd.r * 0.36, eyeY = hd.cy - hd.r * 0.12, er = Math.max(3.6, hd.r * 0.2);
         const nr = Math.max(3.2, snry * 0.44);
-        const noseX = tipX - nr * 0.6, noseY = sncy - snry * 0.5;
+        const noseX = tipX - nr * 0.45, noseY = sncy - snry * 0.55;
         let headDetail = `<g clip-path="url(#${u}h)">`;
         if (br.mask) {
-            headDetail += `<ellipse cx="${sncx + 3}" cy="${sncy - 1}" rx="${snrx + 4}" ry="${snry + 2}" fill="${shade(dark, 0.55)}"/><ellipse cx="${hd.cx + hd.r * 0.28}" cy="${hd.cy - hd.r * 0.12}" rx="${hd.r * 0.42}" ry="${hd.r * 0.36}" fill="${shade(dark, 0.55)}"/>`;
+            headDetail += `<ellipse cx="${sncx + 3}" cy="${sncy - 1}" rx="${snrx + 4}" ry="${snry + 2}" fill="${shade(dark, 0.66)}"/><ellipse cx="${hd.cx + hd.r * 0.28}" cy="${hd.cy - hd.r * 0.12}" rx="${hd.r * 0.42}" ry="${hd.r * 0.36}" fill="${shade(dark, 0.66)}"/>`;
         } else if (br.huskyMask) {
             headDetail += `<path d="M${hd.cx - hd.r * 0.1} ${hd.cy + hd.r * 0.15} Q${hd.cx + hd.r * 0.5} ${hd.cy - hd.r * 0.2} ${tipX + 6} ${hd.cy + hd.r * 0.1} L${tipX + 6} ${hd.cy + hd.r * 2} L${hd.cx - hd.r} ${hd.cy + hd.r * 2} Z" fill="${light}"/>` +
                 `<path d="M${hd.cx + hd.r * 0.1} ${hd.cy - hd.r * 1.1} L${hd.cx + hd.r * 0.35} ${hd.cy - hd.r * 0.2} L${hd.cx + hd.r * 0.55} ${hd.cy - hd.r * 1.1} Z" fill="${light}"/>`;
         } else {
-            headDetail += `<ellipse cx="${sncx + 2}" cy="${sncy + snry * 0.35}" rx="${snrx}" ry="${snry * 0.78}" fill="${light}"/>`;
+            headDetail += `<ellipse cx="${sncx + 2}" cy="${sncy + snry * 0.4}" rx="${snrx}" ry="${snry * 0.74}" fill="${light}"/>`;
             if (br.cheeks) headDetail += `<ellipse cx="${hd.cx + hd.r * 0.05}" cy="${hd.cy + hd.r * 0.72}" rx="${hd.r * 0.85}" ry="${hd.r * 0.5}" fill="${light}"/>`;
             if (br.blaze) headDetail += `<path d="M${hd.cx + hd.r * 0.05} ${hd.cy - hd.r * 1.1} L${hd.cx + hd.r * 0.4} ${hd.cy - hd.r * 1.1} L${tipX + 4} ${sncy - snry * 0.6} L${tipX + 4} ${sncy + snry} L${hd.cx + hd.r * 0.3} ${sncy + snry} Z" fill="${light}"/>`;
         }
         if (coat.pattern) headDetail += patternSVG(coat.pattern, coat.patColor, br);
+        headDetail += `<ellipse cx="${hd.cx}" cy="${hd.cy}" rx="${hd.r * 1.6}" ry="${hd.r * 1.5}" fill="url(#${u}hh)"/>` +
+            `<rect x="${hd.cx - hd.r * 1.2}" y="${hd.cy - hd.r * 0.2}" width="${hd.r * 3 + sn.len}" height="${hd.r * 1.6}" fill="url(#${u}hs)"/>` +
+            `<ellipse cx="${hd.cx + hd.r * 0.62}" cy="${mTop + snry * 0.28}" rx="${hd.r * 0.28}" ry="${snry * 0.4}" fill="#fff" opacity=".16"/>` +   // muzzle bridge highlight
+            `<path d="M${hd.cx + hd.r * 0.12} ${hd.cy + hd.r * 0.52} Q${hd.cx + hd.r * 0.4} ${hd.cy + hd.r * 0.68} ${hd.cx + hd.r * 0.62} ${hd.cy + hd.r * 0.55}" fill="none" stroke="${OL}" stroke-width="1.2" opacity=".18" stroke-linecap="round"/>`;
         headDetail += `</g>`;
-        if (br.wrinkles) headDetail += `<path d="M${hd.cx + hd.r * 0.1} ${hd.cy - hd.r * 0.72} q${hd.r * 0.28} -${hd.r * 0.12} ${hd.r * 0.5} 0 M${hd.cx + hd.r * 0.15} ${hd.cy - hd.r * 0.5} q${hd.r * 0.26} -${hd.r * 0.1} ${hd.r * 0.46} 0" fill="none" stroke="${OL}" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>`;
+        if (br.wrinkles) headDetail += `<path d="M${hd.cx + hd.r * 0.1} ${hd.cy - hd.r * 0.72} q${hd.r * 0.28} -${hd.r * 0.12} ${hd.r * 0.5} 0 M${hd.cx + hd.r * 0.15} ${hd.cy - hd.r * 0.5} q${hd.r * 0.26} -${hd.r * 0.1} ${hd.r * 0.46} 0 M${hd.cx + hd.r * 0.55} ${hd.cy - hd.r * 0.1} q${hd.r * 0.2} -${hd.r * 0.1} ${hd.r * 0.36} 0" fill="none" stroke="${OL}" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>`;
 
-        /* huskies + shibas get little eyebrow dots */
         const brows = (br.huskyMask || br.cheeks) ? `<ellipse cx="${eyeX + 1}" cy="${eyeY - er * 2.3}" rx="${er * 0.9}" ry="${er * 0.6}" fill="${light}"/>` : '';
 
         /* nose, mouth, tongue, eye */
-        const mouthY = sncy + snry * 0.2;
+        const mouthY = sncy + snry * 0.22;
+        const cornerX = Math.max(hd.cx + hd.r * 0.25, tipX - sn.len - hd.r * 0.15), cornerY = mouthY + snry * 0.5;
+        const whisk = [0, 1, 2].map(i => `<circle cx="${f1(noseX - nr * 1.8 - i * nr * 0.95)}" cy="${f1(noseY + nr * 0.5 + (i % 2) * nr * 0.55)}" r="0.85" fill="${OL}" opacity=".55"/>`).join('');
         const face =
-            `<ellipse cx="${hd.cx + hd.r * 0.3}" cy="${hd.cy + hd.r * 0.42}" rx="${hd.r * 0.2}" ry="${hd.r * 0.14}" fill="#ff8fa3" opacity=".38"/>` +
-            brows +
-            `<path class="tongue" d="M${noseX - nr * 1.4} ${mouthY + snry * 0.38} q${-nr * 0.1} ${nr * 2.9} ${nr * 1.5} ${nr * 2.9} q${nr * 1.5} 0 ${nr * 1.3} -${nr * 2.7} Z" fill="#ff7a93" stroke="${OL}" stroke-width="1.8" stroke-linejoin="round"/>` +
-            `<path d="M${noseX} ${noseY + nr * 0.7} L${noseX} ${mouthY} Q${noseX - nr * 1.1} ${mouthY + snry * 0.7} ${noseX - nr * 3.6} ${mouthY + snry * 0.4}" fill="none" stroke="${OL}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` +
-            `<ellipse cx="${noseX}" cy="${noseY}" rx="${nr}" ry="${nr * 0.8}" fill="#2a1c18" stroke="#000" stroke-width="0.8"/><ellipse cx="${noseX - nr * 0.3}" cy="${noseY - nr * 0.3}" rx="${nr * 0.32}" ry="${nr * 0.2}" fill="#fff" opacity=".7"/>` +
-            `<g class="eye"><ellipse cx="${eyeX}" cy="${eyeY}" rx="${er}" ry="${er * 1.18}" fill="#1c1210"/><circle cx="${eyeX + er * 0.34}" cy="${eyeY - er * 0.42}" r="${er * 0.42}" fill="#fff"/><circle cx="${eyeX - er * 0.32}" cy="${eyeY + er * 0.5}" r="${er * 0.2}" fill="#fff" opacity=".8"/></g>` +
-            `<path d="M${eyeX - er * 1.2} ${eyeY - er * 1.9} Q${eyeX} ${eyeY - er * 2.7} ${eyeX + er * 1.3} ${eyeY - er * 1.8}" fill="none" stroke="${OL}" stroke-width="1.8" stroke-linecap="round"/>`;
+            `<path class="tongue" d="M${noseX - nr * 1.6} ${mouthY + snry * 0.3} q${-nr * 0.1} ${nr * 3} ${nr * 1.5} ${nr * 3} q${nr * 1.5} 0 ${nr * 1.3} -${nr * 2.8} Z" fill="#ff7a93" stroke="${OL}" stroke-width="1.7" stroke-linejoin="round"/>` +
+            `<path class="tongue" d="M${noseX - nr * 0.2} ${mouthY + snry * 0.45} l.2 ${nr * 2}" stroke="#d8546f" stroke-width="1" fill="none" stroke-linecap="round"/>` +
+            `<path d="M${noseX} ${noseY + nr * 0.75} L${noseX - 0.2} ${mouthY} Q${noseX - nr * 1.5} ${mouthY + snry * 0.72} ${f1(cornerX + nr * 1.5)} ${f1(cornerY)} Q${f1(cornerX + nr * 0.4)} ${f1(cornerY + 0.2)} ${f1(cornerX - 1)} ${f1(cornerY - 1.2)}" fill="none" stroke="${OL}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>` +
+            `<path d="M${noseX - nr * 1.1} ${noseY + nr * 0.7} Q${noseX - nr * 0.1} ${noseY + nr * 1.6} ${noseX} ${noseY + nr * 0.75}" fill="none" stroke="#fff" stroke-width=".9" opacity=".0"/>` +
+            `<path d="M${noseX - nr * 1.05} ${noseY - nr * 0.15} C${noseX - nr * 1.1} ${noseY - nr * 0.95} ${noseX + nr * 0.5} ${noseY - nr * 1.05} ${noseX + nr * 1.15} ${noseY - nr * 0.3} C${noseX + nr * 1.25} ${noseY + nr * 0.5} ${noseX + nr * 0.2} ${noseY + nr * 0.95} ${noseX - nr * 0.5} ${noseY + nr * 0.8} C${noseX - nr * 1.0} ${noseY + nr * 0.6} ${noseX - nr * 1.0} ${noseY + nr * 0.2} ${noseX - nr * 1.05} ${noseY - nr * 0.15} Z" fill="#241a18" stroke="#0d0807" stroke-width=".8"/>` +
+            `<path d="M${noseX - nr * 0.25} ${noseY + nr * 0.05} q${nr * 0.45} ${nr * 0.5} ${nr * 0.95} ${nr * 0.05}" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".85"/>` +
+            `<ellipse cx="${noseX + nr * 0.05}" cy="${noseY - nr * 0.52}" rx="${nr * 0.5}" ry="${nr * 0.2}" fill="#fff" opacity=".55"/>` +
+            `<g class="eye"><ellipse cx="${eyeX}" cy="${eyeY}" rx="${er * 1.45}" ry="${er * 1.6}" fill="#1b1210"/>` +
+            `<ellipse cx="${eyeX + er * 0.2}" cy="${eyeY - er * 0.55}" rx="${er * 0.58}" ry="${er * 0.62}" fill="#fff"/>` +
+            `<circle cx="${eyeX - er * 0.4}" cy="${eyeY + er * 0.55}" r="${er * 0.26}" fill="#fff" opacity=".85"/></g>`;
 
-        /* ears */
+        /* ---- ears ---- */
         let earBack = '', earFront = '';
         const earType = br.ear.type;
         if (earType === 'curly') {
             const c = [[-0.78, 0.1, 0.5], [-0.85, 0.55, 0.46], [-0.72, 0.98, 0.4]];
             const els = c.map(p => `<circle cx="${hd.cx + hd.r * p[0]}" cy="${hd.cy + hd.r * p[1]}" r="${hd.r * p[2]}"/>`).join('');
-            earFront = `<g fill="${OL}" stroke="${OL}" stroke-width="5.4" stroke-linejoin="round">${els}</g><g fill="${shade(fur, 0.9)}">${els}</g>`;
+            earFront = `<g fill="${OL}" stroke="${OL}" stroke-width="3.6" stroke-linejoin="round">${els}</g><g fill="${shade(fur, 0.92)}">${els}</g>` +
+                c.map(p => `<circle cx="${hd.cx + hd.r * (p[0] - 0.12)}" cy="${hd.cy + hd.r * (p[1] - 0.1)}" r="${hd.r * p[2] * 0.45}" fill="#fff" opacity=".16"/>`).join('');
         } else if (earType !== 'none') {
             const farD = earPath(br, hd, true), nearD = earPath(br, hd, false);
             const floppy = earType === 'floppy';
             const flop = floppy ? ' ear-flop' : '';
-            const inner = (earType === 'pointy')
-                ? `<path d="M${hd.cx - hd.r * 0.62} ${hd.cy - hd.r * 0.38} Q${hd.cx - hd.r * 0.68} ${hd.cy - hd.r * (0.95 + 0.7 * br.ear.s)} ${hd.cx - hd.r * 0.32} ${hd.cy - hd.r * (0.95 + 0.62 * br.ear.s)} Q${hd.cx - hd.r * 0.05} ${hd.cy - hd.r * 0.95} ${hd.cx - hd.r * 0.08} ${hd.cy - hd.r * 0.66} Z" fill="#f4b4b4" opacity=".85"/>` : '';
-            const earFill = br.mask ? shade(dark, 0.5) : dark;
-            earBack = `<path d="${farD}" fill="${shade(earFill, 0.82)}" stroke="${OL}" stroke-width="2.6" stroke-linejoin="round"/>`;
-            earFront = `<g class="ear${flop}"><path d="${nearD}" fill="${earFill}" stroke="${OL}" stroke-width="2.6" stroke-linejoin="round"/>${inner}</g>`;
+            const earFill = br.mask ? shade(dark, 0.62) : dark;
+            let inner = '';
+            if (earType === 'pointy') {
+                const s = br.ear.s;
+                inner = `<path d="M${hd.cx - hd.r * 0.62} ${hd.cy - hd.r * 0.38} Q${hd.cx - hd.r * 0.68} ${hd.cy - hd.r * (0.95 + 0.7 * s)} ${hd.cx - hd.r * 0.32} ${hd.cy - hd.r * (0.95 + 0.62 * s)} Q${hd.cx - hd.r * 0.05} ${hd.cy - hd.r * 0.95} ${hd.cx - hd.r * 0.08} ${hd.cy - hd.r * 0.66} Z" fill="#e9a9a4" opacity=".8"/>` +
+                    [0, 1, 2].map(i => `<path d="M${f1(hd.cx - hd.r * (0.5 - i * 0.12))} ${f1(hd.cy - hd.r * 0.5)} q${f1(-hd.r * 0.05)} ${f1(-hd.r * (0.3 + 0.2 * s))} ${f1(hd.r * 0.02)} ${f1(-hd.r * (0.45 + 0.3 * s))}" fill="none" stroke="${light}" stroke-width="1.3" stroke-linecap="round" opacity=".7"/>`).join('');
+            } else if (floppy) {
+                const L = hd.r * 1.5 * br.ear.s, ax = hd.cx - hd.r * 0.38, ay = hd.cy - hd.r * 0.68;
+                inner = `<path d="M${f1(ax - 2)} ${f1(ay + 3)} C${f1(ax - 3)} ${f1(ay + L * 0.4)} ${f1(ax - 1)} ${f1(ay + L * 0.75)} ${f1(ax + 1)} ${f1(ay + L * 0.92)}" fill="none" stroke="${OL}" stroke-width="1.6" stroke-linecap="round" opacity=".3"/>` +
+                    `<path d="M${f1(ax + 4)} ${f1(ay + 2)} C${f1(ax + 6)} ${f1(ay + L * 0.4)} ${f1(ax + 4)} ${f1(ay + L * 0.7)} ${f1(ax + 2)} ${f1(ay + L * 0.88)}" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".16"/>`;
+            } else {
+                inner = `<path d="M${hd.cx - hd.r * 0.7} ${hd.cy - hd.r * 0.5} Q${hd.cx - hd.r * 0.55} ${hd.cy - hd.r * 0.85} ${hd.cx - hd.r * 0.15} ${hd.cy - hd.r * 0.6}" fill="none" stroke="${OL}" stroke-width="1.4" opacity=".35"/>`;
+            }
+            earBack = `<path d="${farD}" fill="${shade(earFill, 0.8)}" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/>`;
+            earFront = `<g class="ear${flop}"><path d="${nearD}" fill="${earFill}" stroke="${OL}" stroke-width="2.4" stroke-linejoin="round"/>${inner}</g>`;
         }
 
-        /* cosmetics */
+        /* ---- cosmetics (lit with the soft studio filter) ---- */
+        const lit = inner => `<g filter="url(#${u}F)">${inner}</g>`;
         const cx0 = hd.cx - hd.r * 0.12, cy0 = hd.cy - hd.r * 0.93;
-        const hat = sel.hat && HATS[sel.hat] ? `<g transform="translate(${cx0} ${cy0}) rotate(7) scale(${k})">${HATS[sel.hat](opts.still)}</g>` : '';
-        const faceAcc = sel.face && FACES[sel.face] ? `<g transform="translate(${eyeX} ${eyeY}) scale(${k})">${FACES[sel.face]()}</g>` : '';
-        const neck = sel.neck && NECKS[sel.neck] ? `<g transform="translate(${hd.cx - hd.r * 0.55} ${hd.cy + hd.r * 1.3}) scale(${k})">${NECKS[sel.neck]()}</g>` : '';
-        const cape = sel.neck === 'cape' ? capeBehind(b, hd) : '';
+        const hat = sel.hat && HATS[sel.hat] ? lit(`<g transform="translate(${cx0} ${cy0}) rotate(7) scale(${k})">${HATS[sel.hat](opts.still)}</g>`) : '';
+        const faceAcc = sel.face && FACES[sel.face] ? lit(`<g transform="translate(${eyeX} ${eyeY}) scale(${k})">${FACES[sel.face]()}</g>`) : '';
+        const neck = sel.neck && NECKS[sel.neck] ? lit(`<g transform="translate(${hd.cx - hd.r * 0.72} ${hd.cy + hd.r * 1.18}) scale(${k})">${NECKS[sel.neck]()}</g>`) : '';
+        const cape = sel.neck === 'cape' ? lit(capeBehind(b, hd)) : '';
 
         /* view box */
         let vb = '-4 -46 210 180';
@@ -442,14 +569,13 @@ window.PT_ART = (() => {
         return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" ${opts.view && opts.view !== 'full' ? 'style="overflow:hidden"' : ''}><defs>${defs}</defs>${shadow}
 <g class="bob">
   ${cape}
-  ${tailSVG(br, { b, fillMain: main, OL, light, still: opts.still })}
+  ${tailSVG(br, { b, fillMain: main, OL, light, dark, still: opts.still })}
   ${legsFar}
   ${legsNear}
   ${union(bodyEls)}
   ${bodyShade}
   ${earBack}
   ${union(headEls)}
-  ${coat.pattern ? `<g clip-path="url(#${u}b)">${patternSVG(coat.pattern, coat.patColor, br)}</g>` : ''}
   ${headDetail}
   ${earFront}
   ${face}
