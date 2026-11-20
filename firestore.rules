@@ -2,9 +2,55 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Your save: only you can read or write it.
+    // ----- Anti-cheat helpers -----
+    // 'core' = bones, levels, cosmetics and badges stored as plain fields so they can be checked here.
+    function coreShape(c) {
+      return c.keys().hasOnly(['bones', 'level', 'ownedIds', 'badges', 'passXp', 'games', 'at'])
+        && c.bones is int && c.bones >= 0 && c.level is int && c.level >= 1
+        && c.passXp is int && c.passXp >= 0 && c.games is int && c.games >= 0 && c.at is int
+        && c.ownedIds is list && c.badges is list;
+    }
+    // very first time a player's core is stored (generous: it may hold progress made before this existed)
+    function coreFirst(c) {
+      return coreShape(c) && c.bones <= 50000 && c.level <= 100 && c.ownedIds.size() <= 150
+        && c.badges.size() <= 5 && c.games <= 5000 && c.passXp <= 100000;
+    }
+    // after that, it can only change once per 20 seconds and grow at a believable speed (d = seconds since the last change)
+    function coreGrowth(o, c, d) {
+      return coreShape(c)
+        && c.bones <= o.bones + 800 + 6 * d
+        && c.level <= o.level + 1 + d / 20
+        && c.ownedIds.size() <= o.ownedIds.size() + 3 + d / 60
+        && c.badges.size() <= o.badges.size() + 3
+        && c.badges.size() <= 10
+        && c.passXp <= o.passXp + 300 + 5 * d
+        && c.games <= o.games + 1 + d / 4;
+    }
+
+    // Your save: only you can read it. Writes that change 'core' must follow the growth limits above.
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow delete: if false;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && (!('core' in request.resource.data)
+            || (coreFirst(request.resource.data.core) && request.resource.data.coreAt == request.time));
+      allow update: if request.auth != null && request.auth.uid == uid
+        && ((request.resource.data.get('core', null) == resource.data.get('core', null)
+             && request.resource.data.get('coreAt', null) == resource.data.get('coreAt', null))
+            || (request.resource.data.coreAt == request.time
+                && ('core' in resource.data && 'coreAt' in resource.data
+                    && (request.time.toMillis() - resource.data.coreAt.toMillis()) >= 20000
+                    ? coreGrowth(resource.data.core, request.resource.data.core,
+                                 (request.time.toMillis() - resource.data.coreAt.toMillis()) / 1000)
+                    : coreFirst(request.resource.data.core))));
+    }
+
+    // Trusted server time: you can only write the server's own clock into your own doc.
+    match /clock/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['t']) && request.resource.data.t == request.time;
+      allow delete: if false;
     }
 
     // Username claims: anyone signed in can check one; you can only claim a free name for yourself.
@@ -21,8 +67,29 @@ service cloud.firestore {
     match /profiles/{uid} {
       allow read: if true;
       allow create, update: if request.auth != null && request.auth.uid == uid
-        && get(/databases/$(database)/documents/usernames/$(request.resource.data.username.lower())).data.uid == request.auth.uid;
+        && get(/databases/$(database)/documents/usernames/$(request.resource.data.username.lower())).data.uid == request.auth.uid
+        && request.resource.data.level is int && request.resource.data.level >= 0 && request.resource.data.level <= 500
+        && request.resource.data.bestWpm is number && request.resource.data.bestWpm >= 0 && request.resource.data.bestWpm <= 300
+        && request.resource.data.badges.size() <= 10;
       allow delete: if false;
+    }
+
+    // Private race rooms. You need the 5-letter code to open one (rooms cannot be listed).
+    // Only the host can change the room itself. Each racer can only write their own player doc.
+    match /rooms/{code} {
+      allow get: if request.auth != null;
+      allow list: if false;
+      allow create: if request.auth != null && request.resource.data.host == request.auth.uid
+        && code.matches('^[A-Z0-9]{5}$');
+      allow update, delete: if request.auth != null && resource.data.host == request.auth.uid;
+
+      match /players/{uid} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && (!('progress' in request.resource.data) || (request.resource.data.progress >= 0 && request.resource.data.progress <= 1))
+          && (!('wpm' in request.resource.data) || (request.resource.data.wpm >= 0 && request.resource.data.wpm <= 300));
+        allow delete: if request.auth != null && request.auth.uid == uid;
+      }
     }
   }
 }
